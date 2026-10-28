@@ -2,6 +2,7 @@ import { about, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { DitherReveal } from "@/components/fx/DitherReveal";
 import { StackTree } from "./StackTree";
+import { Prompt } from "@/components/ui/Prompt";
 
 const s = sections[1];
 
@@ -58,7 +59,8 @@ export function About() {
 
       <div className="border-t border-line p-4 md:px-8 md:py-6">
         <p className="mb-3 text-[11px] text-fg-3">
-          guest@fahmi:~$ <span className="text-fg-2">tree stack/</span>
+          <Prompt />
+          <span className="text-fg">tree stack/</span>
         </p>
         <StackTree core={about.stack.core} supporting={about.stack.supporting} />
       </div>

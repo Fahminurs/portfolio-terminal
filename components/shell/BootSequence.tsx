@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Prompt } from "@/components/ui/Prompt";
 
 const LINES: [string, string][] = [
   ["OK", "mounted /dev/esp32s3 (xtensa lx7 @ 240MHz)"],
@@ -62,7 +63,8 @@ export function BootSequence() {
           </div>
         ))}
         <div className="mt-2 text-fg">
-          guest@fahmi:~$ <span className="cursor-block" />
+          <Prompt />
+          <span className="cursor-block" />
         </div>
         <div className="mt-6 text-[10px] text-fg-3">press any key to skip</div>
       </div>

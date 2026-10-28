@@ -6,8 +6,16 @@ import { experience, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { NoSignal } from "@/components/ui/NoSignal";
 import { useCalm } from "@/lib/calm";
+import { cn } from "@/lib/utils";
 
 const s = sections[5];
+
+// log levels, one hue per kind of entry — like syslog tags in a colored `tail -f`
+const TAG_COLOR: Record<string, string> = {
+  INTERN: "text-term-green",
+  "STUDI INDEPENDEN": "text-term-cyan",
+  ORG: "text-term-magenta",
+};
 
 /** `tail -f`: lines arrive from the bottom one by one the first time the log is seen (§5.7). */
 export function Experience() {
@@ -33,7 +41,7 @@ export function Experience() {
               <span className="text-fg-3">{e.ts[1]}</span>
             </div>
             <div>
-              <p className="text-[11px] text-accent">
+              <p className={cn("text-[11px] font-bold", TAG_COLOR[e.tag] ?? "text-fg-2")}>
                 [{e.tag}]
                 {i === 0 && <span aria-hidden className="cursor-block ml-2 !h-[0.9em] !w-[0.5em]" />}
               </p>

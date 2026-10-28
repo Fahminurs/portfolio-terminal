@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import type { Project } from "@/content/data";
 import { cn, OPEN_PROJECT_EVENT } from "@/lib/utils";
+import { langColor } from "@/lib/lang";
 
 type Props = {
   project: Project;
@@ -53,7 +54,7 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
         <div className={cn("p-4 md:p-6 print:hidden", flip && "md:order-2")}>{media}</div>
         <div className={cn("flex flex-col gap-3 border-line p-4 md:p-6", flip ? "md:border-r" : "md:border-l")}>
           <div className="flex flex-wrap items-center gap-2 text-[10px] text-fg-3">
-            <span className="tabular-nums text-accent">{String(index + 1).padStart(2, "0")}</span>
+            <span className="tui-idx tabular-nums text-accent">{String(index + 1).padStart(2, "0")}</span>
             <span>{p.category}</span>
             <StatusBadge status={p.status} />
           </div>
@@ -63,7 +64,7 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
           <ul className="flex flex-wrap gap-1.5" aria-label="Stack">
             {p.stack.map((s) => (
               <li key={s} className="border border-line px-1.5 py-px text-[10.5px] text-fg-2">
-                <span className="text-fg-3">{s[0]}·</span>
+                <span className={langColor(s)}>{s[0]}·</span>
                 {s}
               </li>
             ))}

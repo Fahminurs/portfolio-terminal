@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { repoFilters, REPO_TOTAL, type Repo, type RepoCat } from "@/content/data";
 import { scrollToId, cn } from "@/lib/utils";
 import { useCalm } from "@/lib/calm";
+import { langColor } from "@/lib/lang";
 
 type Cat = "all" | RepoCat;
 const ids = repoFilters.map((f) => f.id);
@@ -135,7 +136,9 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
               {/* ≤850px: meta row + full-width action, stacked (wireframe repo-footer) */}
               <div className="mt-auto flex flex-col gap-2 text-[10px] wf:flex-row wf:items-center wf:justify-between wf:text-[10.5px]">
                 <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <span className="border border-line px-1.5 text-fg-3 wf:border-0 wf:px-0">{r.lang ?? "—"}</span>
+                  <span className={cn("border border-line px-1.5 wf:border-0 wf:px-0", langColor(r.lang))}>
+                    {r.lang ?? "—"}
+                  </span>
                   <span
                     title={r.estimated ? "perkiraan" : undefined}
                     className={cn("text-fg-3", r.estimated && "underline decoration-dashed underline-offset-2")}

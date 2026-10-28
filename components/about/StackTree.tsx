@@ -15,7 +15,7 @@ function Branch({ name, tags, last }: { name: string; tags: string[]; last?: boo
     <div className="flex flex-col gap-y-1 sm:flex-row sm:items-start">
       <span className="shrink-0 whitespace-pre text-fg-3">
         {last ? "└── " : "├── "}
-        <span className="text-fg">{name.padEnd(12)}</span>
+        <span className="font-bold text-term-blue">{name.padEnd(12)}</span>
       </span>
       <ul className="flex flex-wrap gap-1.5 pl-4 sm:pl-0">
         {tags.map((t) => {
@@ -48,7 +48,7 @@ function Branch({ name, tags, last }: { name: string; tags: string[]; last?: boo
 export function StackTree({ core, supporting }: { core: string[]; supporting: string[] }) {
   return (
     <div className="flex flex-col gap-2 text-[12px]">
-      <span className="text-fg-2">stack/</span>
+      <span className="font-bold text-term-blue">stack/</span>
       <Branch name="core/" tags={core} />
       <Branch name="supporting/" tags={supporting} last />
       <p className="mt-1 text-[10px] text-fg-3"># hover sebuah tag → projek yang memakainya ditandai di [2] projects</p>

@@ -3,6 +3,7 @@ import { BootSequence } from "@/components/shell/BootSequence";
 import { PaneNav, Titlebar } from "@/components/shell/Chrome";
 import { Statusline } from "@/components/shell/Statusline";
 import { CommandPalette } from "@/components/shell/CommandPalette";
+import { KeyHelp } from "@/components/shell/KeyHelp";
 import { Hero } from "@/components/hero/Hero";
 import { ResumePanel } from "@/components/hero/ResumePanel";
 import { About } from "@/components/about/About";
@@ -43,6 +44,7 @@ export default function Home() {
       </div>
       <Statusline />
       <CommandPalette />
+      <KeyHelp />
     </ShellProvider>
   );
 }

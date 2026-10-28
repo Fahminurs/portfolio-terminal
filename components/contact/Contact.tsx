@@ -4,6 +4,7 @@ import { useState } from "react";
 import { profile, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { useCalm } from "@/lib/calm";
+import { Prompt } from "@/components/ui/Prompt";
 import { cn } from "@/lib/utils";
 
 const s = sections[7];
@@ -94,11 +95,13 @@ export function Contact() {
 
         <form onSubmit={onSubmit} className="flex flex-col p-4 text-[12.5px] md:p-8">
           <p className="mb-4 text-[11px] text-fg-3">
-            guest@fahmi:~$ <span className="text-fg-2">send --to fahmi \</span>
+            <Prompt />
+            <span className="text-fg">send</span> <span className="text-term-cyan">--to</span>{" "}
+            <span className="text-fg">fahmi</span> <span className="text-fg-3">\</span>
           </p>
           {FIELDS.map((f) => (
             <label key={f.name} className="term-field grid items-center border-b border-line sm:grid-cols-[130px_1fr]">
-              <span className="pt-2 text-accent sm:pt-0">{f.flag}</span>
+              <span className="pt-2 text-term-cyan sm:pt-0">{f.flag}</span>
               <input
                 name={f.name}
                 type={f.type}
@@ -112,7 +115,7 @@ export function Contact() {
             </label>
           ))}
           <label className="term-field grid border-b border-line sm:grid-cols-[130px_1fr]">
-            <span className="pt-2.5 text-accent">--message</span>
+            <span className="pt-2.5 text-term-cyan">--message</span>
             <textarea
               name="message"
               required
@@ -141,7 +144,7 @@ export function Contact() {
                 key={i}
                 className={cn(l.tone === "ok" ? "text-ok" : l.tone === "err" ? "text-err" : "text-fg-2")}
               >
-                {bar(l.bar, l.tone === "err")} {l.text}
+                <span className={l.tone ? "" : "text-term-cyan"}>{bar(l.bar, l.tone === "err")}</span> {l.text}
               </div>
             ))}
             {failed && (

@@ -1,5 +1,6 @@
 import { codeToHtml, createCssVariablesTheme } from "shiki";
 import type { CodeExcerpt as Excerpt } from "@/content/data";
+import { TuiWindow } from "@/components/ui/TuiWindow";
 
 const theme = createCssVariablesTheme({ name: "fahmi-term", variablePrefix: "--shiki-" });
 
@@ -23,29 +24,30 @@ async function highlight(src: string, lang: string, from: number) {
  * Real source excerpt, highlighted on the server (0 KB JS). Colors come from CSS vars in
  * globals.css so only the accent "lights up" (§2.1: one accent).
  */
-export async function CodeExcerpt({ code }: { code: Excerpt }) {
+export async function CodeExcerpt({ code, on }: { code: Excerpt; on?: "bg" | "surface" }) {
   const [from, to] = code.lines;
   const html = await highlight(code.src, code.lang, from);
+  const source = (
+    <a href={code.href} target="_blank" rel="noreferrer" className="hover:text-accent">
+      {code.repo}@{code.sha} ↗
+    </a>
+  );
 
   return (
-    <figure className="border border-line bg-bg">
-      <figcaption className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-1.5 text-[10px] text-fg-3">
-        <span>
-          <span className="text-fg-2">$ sed -n {from},{to}p</span> {code.path}
-        </span>
-        <a
-          href={code.href}
-          target="_blank"
-          rel="noreferrer"
-          className="text-fg-3 transition-colors hover:text-accent"
-        >
-          {code.repo}@{code.sha} ↗
-        </a>
-      </figcaption>
+    <TuiWindow
+      on={on}
+      title={
+        <>
+          {code.path} <span className="text-fg-3">:{from}-{to}</span>
+        </>
+      }
+      right={source}
+    >
       <div
-        className="code-excerpt overflow-x-auto py-2 text-[11.5px] leading-[1.6]"
+        className="code-excerpt overflow-x-auto pb-2 text-[11.5px] leading-[1.6]"
         dangerouslySetInnerHTML={{ __html: html }}
       />
-    </figure>
+      <p className="border-t border-line px-3 py-1.5 text-[10px] text-fg-3 sm:hidden">{source}</p>
+    </TuiWindow>
   );
 }

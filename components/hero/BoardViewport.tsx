@@ -1,3 +1,5 @@
+import { TuiWindow } from "@/components/ui/TuiWindow";
+
 // Static ASCII fallback (§6.1) — also what mobile / reduced-motion get once the 3D view
 // lands in M3. Pin map is verbatim from ParkEasy_Alat main/config.h.
 const BOARD = String.raw`
@@ -27,20 +29,47 @@ const BUS = [
   ["ch4", "VL53L1X B1", "0x29"],
 ];
 
+// one hue per bus, like a schematic legend
+const NETS: [RegExp, string][] = [
+  [/^(SCL|SDA|TCA9548A)$/, "text-term-cyan"],
+  [/^(TX0|RX0|UART|115200)$/, "text-term-yellow"],
+  [/^SERVO (IN|OUT)$/, "text-term-magenta"],
+  [/^(TRIG|ECHO)\d$/, "text-term-blue"],
+  [/^BUZZER (IN|OUT)$/, "text-term-red"],
+  [/^(ESP32-WROOM|240 MHz)$/, "font-bold text-fg"],
+  [/^[─│┤├┌┐└┘┴]+$/, "text-fg-3"],
+];
+const TOKEN =
+  /(SERVO (?:IN|OUT)|BUZZER (?:IN|OUT)|240 MHz|ESP32-WROOM|TCA9548A|SCL|SDA|TX0|RX0|UART|115200|(?:TRIG|ECHO)\d|[─│┤├┌┐└┘┴]+)/;
+
+function Line({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(TOKEN).map((part, i) => {
+        const hit = NETS.find(([re]) => re.test(part));
+        return hit ? (
+          <span key={i} className={hit[1]}>
+            {part}
+          </span>
+        ) : (
+          part
+        );
+      })}
+      {"\n"}
+    </>
+  );
+}
+
 export function BoardViewport() {
   return (
-    <figure className="relative border border-line bg-surface print:hidden">
-      <figcaption className="flex justify-between border-b border-line px-3 py-1.5 text-[10px] text-fg-3">
-        <span>
-          VIEWPORT_01 — <span className="text-fg-2">esp32.pinout</span>
-        </span>
-        <span>static · 3D in M3</span>
-      </figcaption>
+    <TuiWindow title={<>VIEWPORT_01 — esp32.pinout</>} className="print:hidden">
       <pre
         aria-hidden
         className="overflow-x-auto px-3 py-3 text-[9.5px] leading-[1.2] text-fg-2 sm:text-[10.5px]"
       >
-        {BOARD}
+        {BOARD.split("\n").map((l, i) => (
+          <Line key={i} text={l} />
+        ))}
       </pre>
       <p className="sr-only">
         Pinout ESP32 ParkEasy: servo di IO13 dan IO12, buzzer di IO18 dan IO19, HC-SR04 di IO14/27 dan
@@ -51,13 +80,14 @@ export function BoardViewport() {
         <tbody>
           {BUS.map(([ch, dev, addr]) => (
             <tr key={ch} className="border-b border-line last:border-0">
-              <td className="px-3 py-1 text-accent">{ch}</td>
+              <td className="px-3 py-1 text-term-cyan">{ch}</td>
               <td className="py-1 text-fg-2">{dev}</td>
-              <td className="px-3 py-1 text-right text-fg-3">{addr}</td>
+              <td className="px-3 py-1 text-right text-term-yellow">{addr}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </figure>
+      <p className="border-t border-line px-3 py-1 text-right text-[10px] text-fg-3">static · 3D in M3</p>
+    </TuiWindow>
   );
 }

@@ -1,5 +1,6 @@
 import { DecryptedText } from "@/components/fx/DecryptedText";
 import { cn } from "@/lib/utils";
+import { Prompt } from "./Prompt";
 
 type Props = {
   n: number;
@@ -21,7 +22,8 @@ export function SectionHead({ n, label, cmd, title, count, right, className }: P
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 px-4 pt-12 md:px-8">
         <div>
           <p className="mb-2 text-[11px] text-fg-3">
-            guest@fahmi:~$ <span className="text-fg-2">{cmd}</span>
+            <Prompt />
+            <span className="text-fg">{cmd}</span>
           </p>
           <h2 className="flex items-center gap-3 font-display text-[22px] uppercase tracking-[0.04em] text-fg md:text-[26px]">
             <DecryptedText text={title} trigger="view" />

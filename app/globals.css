@@ -14,9 +14,18 @@
   --color-accent: var(--accent, #ffb547);
   --color-accent-dim: color-mix(in oklab, var(--accent, #ffb547) 45%, #0b0c0a);
 
-  --color-ok: #8fd694;
-  --color-warn: #e8c267;
-  --color-err: #ef6f6c;
+  /* ANSI palette — muted, every hue ≥ 7:1 on bg. Semantic only (what `ls --color`,
+     git log and syntax highlighting would color); amber stays the sole focus/selection accent. */
+  --color-term-red: #e57474;
+  --color-term-green: #8fd694;
+  --color-term-yellow: #e8c267;
+  --color-term-blue: #7fa9e0;
+  --color-term-magenta: #c49ad9;
+  --color-term-cyan: #6fc5bf;
+
+  --color-ok: var(--color-term-green);
+  --color-warn: var(--color-term-yellow);
+  --color-err: var(--color-term-red);
 
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
   --font-display: var(--font-display-face), var(--font-jetbrains), monospace;
@@ -113,7 +122,7 @@ body {
 .scrollbar-none { scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
-/* Shiki css-variables theme (§6.7-E): only keywords/functions take the accent */
+/* Shiki css-variables theme (§6.7-E): classic terminal syntax colors from the ANSI palette */
 .code-excerpt pre { background: transparent !important; }
 .code-excerpt code { counter-reset: none; }
 .code-excerpt .line::before {
@@ -127,16 +136,17 @@ body {
 .code-excerpt {
   --shiki-foreground: var(--color-fg-2);
   --shiki-background: transparent;
-  --shiki-token-keyword: var(--color-accent);
-  --shiki-token-function: var(--color-fg);
-  --shiki-token-string: var(--color-fg);
-  --shiki-token-string-expression: var(--color-fg);
-  --shiki-token-constant: var(--color-fg);
-  --shiki-token-parameter: var(--color-fg-2);
+  --shiki-token-keyword: var(--color-term-magenta);
+  --shiki-token-function: var(--color-term-blue);
+  --shiki-token-string: var(--color-term-green);
+  --shiki-token-string-expression: var(--color-term-green);
+  --shiki-token-constant: var(--color-term-yellow);
+  --shiki-token-parameter: var(--color-fg);
   --shiki-token-punctuation: var(--color-fg-3);
   --shiki-token-comment: var(--color-fg-3);
-  --shiki-token-link: var(--color-accent);
+  --shiki-token-link: var(--color-term-cyan);
 }
+.code-excerpt .line { color: var(--color-fg-2); }
 
 /* asciinema-player theme "fahmi" (§6.7-A) — mapped to tokens */
 .asciinema-player-theme-fahmi {
@@ -168,6 +178,40 @@ body {
 @media (hover: none) {
   .dither-orig { --reveal: 100%; }
 }
+
+/* ===== TUI layer ===== */
+
+/* window titles cut into the top border (TuiWindow) */
+.tui-title {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  padding: 0 4px;
+  background: var(--tui-bg, var(--color-bg));
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.tui-title a, .tui-title button { pointer-events: auto; }
+
+/* TUI dialogs: hard block shadow (no blur — Turbo Vision, not glassmorphism) */
+.tui-shadow { box-shadow: 8px 8px 0 0 #050605; }
+
+/* selection bar = inverse video */
+.tui-sel { background: var(--color-accent); color: var(--color-bg); }
+
+/* keyboard cursor in Projects (j/k) */
+article[data-cursor] { box-shadow: inset 3px 0 0 var(--color-accent); }
+article[data-cursor] .tui-idx { background: var(--color-accent); color: var(--color-bg); padding: 0 4px; }
+article[data-cursor] .tui-idx::before { content: "▶ "; }
+
+/* block scrollbar */
+html { scrollbar-color: var(--color-accent-dim) var(--color-surface); }
+::-webkit-scrollbar { width: 10px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--color-surface); border-left: 1px solid var(--color-line); }
+::-webkit-scrollbar-thumb { background: var(--color-accent-dim); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
 
 /* contact flags: the focused field's row lights up like an active prompt */
 .term-field:focus-within { border-color: var(--color-line-2); background: var(--color-surface); }
@@ -202,6 +246,12 @@ article.stack-hit h3::after { content: "  ← uses"; font-family: var(--font-mon
     --color-fg-2: #222;
     --color-fg-3: #555;
     --accent: #000;
+    --color-term-red: #000;
+    --color-term-green: #000;
+    --color-term-yellow: #000;
+    --color-term-blue: #000;
+    --color-term-magenta: #000;
+    --color-term-cyan: #000;
   }
   html, body { background: #fff !important; }
   .backdrop { background-image: none !important; }

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { sections } from "@/content/data";
 import { cn, scrollToId } from "@/lib/utils";
 import { useCalm } from "@/lib/calm";
+import { Prompt } from "@/components/ui/Prompt";
 import { useShell } from "./ShellProvider";
 
 function useClockWIB() {
@@ -100,7 +101,8 @@ export function Statusline() {
           >
             <p className="flex justify-between border-b border-line px-4 py-2 text-[11px] text-fg-3">
               <span>
-                guest@fahmi:~$ <span className="text-fg-2">ls ~/portfolio</span>
+                <Prompt />
+                <span className="text-fg">ls ~/portfolio</span>
               </span>
               <span>{sections.length} bab</span>
             </p>
@@ -117,15 +119,15 @@ export function Statusline() {
                       aria-current={on ? "true" : undefined}
                       className={cn(
                         "flex min-h-11 w-full items-center gap-3 border-b border-line px-4 text-left text-[13px]",
-                        on ? "bg-raised text-fg" : "text-fg-2 active:bg-raised",
+                        on ? "tui-sel" : "text-fg-2 active:bg-raised",
                       )}
                     >
-                      <span className={cn("w-4 tabular-nums", on ? "text-accent" : "text-fg-3")}>{s.n}</span>
+                      <span className={cn("w-6 tabular-nums", on ? "" : "text-fg-3")}>{on ? `▶${s.n}` : ` ${s.n}`}</span>
                       <span className="flex-1">
                         {s.label}
-                        {on && <span className="text-accent">*</span>}
+                        {on && "*"}
                       </span>
-                      <span className="hidden truncate text-[11px] text-fg-3 sm:inline"># {s.cmd}</span>
+                      <span className={cn("hidden truncate text-[11px] sm:inline", on ? "opacity-70" : "text-fg-3")}># {s.cmd}</span>
                     </button>
                   </li>
                 );
@@ -175,11 +177,11 @@ export function Statusline() {
             onClick={() => scrollToId(s.id)}
             className={cn(
               "shrink-0 px-2.5 transition-colors",
-              active === s.id ? "bg-raised text-fg" : "text-fg-3 hover:text-fg-2",
+              active === s.id ? "tui-sel" : "text-fg-3 hover:bg-raised hover:text-fg-2",
             )}
           >
             {s.n}:{s.label}
-            {active === s.id && <span className="text-accent">*</span>}
+            {active === s.id && "*"}
           </button>
         ))}
       </div>

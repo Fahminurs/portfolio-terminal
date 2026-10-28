@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { profile, projects, sections } from "@/content/data";
 import { OPEN_PROJECT_EVENT, scrollToId } from "@/lib/utils";
 import { useShell, type Theme } from "./ShellProvider";
+import { KEYS_EVENT } from "./KeyHelp";
 
 type Line = { kind: "in" | "out" | "err"; text: string };
 
@@ -19,6 +20,7 @@ const HELP = [
   "less resume.pdf      buka resume",
   "lpr resume           cetak / simpan PDF versi CV",
   "plain                mode tenang: tanpa animasi & efek",
+  "keys                 bantuan keyboard (atau tekan ?)",
   "whoami               siapa saya",
   "github               buka profil GitHub",
   "theme <amber|green|ice>",
@@ -44,6 +46,7 @@ export function CommandPalette() {
       { value: "less resume.pdf", hint: "resume viewer" },
       { value: "lpr resume", hint: "print → CV" },
       { value: "plain", hint: "toggle mode tenang" },
+      { value: "keys", hint: "bantuan keyboard" },
       { value: "whoami", hint: "" },
       { value: "github", hint: "github.com/Fahminurs" },
       { value: "theme amber", hint: "default" },
@@ -115,6 +118,10 @@ export function CommandPalette() {
           window.setTimeout(() => window.print(), 150);
         } else print(`lpr: ${arg || "(empty)"}: No such file — try 'lpr resume'`, "err");
         break;
+      case "keys":
+        close();
+        window.setTimeout(() => window.dispatchEvent(new Event(KEYS_EVENT)), 120);
+        return;
       case "plain":
         print(togglePlain() ? "plain mode: on — effects off. run 'plain' again to restore" : "plain mode: off");
         break;
@@ -170,15 +177,22 @@ export function CommandPalette() {
             role="dialog"
             aria-modal="true"
             aria-label="Command prompt"
-            className="w-full max-w-2xl border border-line-2 bg-surface"
+            className="tui-shadow relative w-full max-w-2xl border-[3px] border-double border-line-2 bg-surface"
+            style={{ "--tui-bg": "var(--color-surface)" } as React.CSSProperties}
             initial={{ y: 8 }}
             animate={{ y: 0 }}
             exit={{ y: 8 }}
             transition={{ duration: 0.16, ease: [0.2, 0.8, 0.2, 1] }}
           >
-            <div className="flex items-center justify-between border-b border-line px-3 py-1.5 text-[10px] text-fg-3">
+            <span className="tui-title left-1/2 -translate-x-1/2 text-fg-2">
+              ╡ <span className="text-accent">⌕</span> cari / command ╞
+            </span>
+            <div className="flex items-center justify-between border-b border-line px-3 pb-1.5 pt-2.5 text-[10px] text-fg-3">
               <span>guest@fahmi: ~ — interactive</span>
-              <span>esc to close</span>
+              <span>
+                <kbd className="text-fg-2">↑↓</kbd> pilih · <kbd className="text-fg-2">tab</kbd> lengkapi ·{" "}
+                <kbd className="text-fg-2">esc</kbd> tutup
+              </span>
             </div>
 
             <div ref={logRef} className="max-h-56 overflow-y-auto px-3 py-2 text-[12px] leading-relaxed">
@@ -240,13 +254,16 @@ export function CommandPalette() {
                     key={i.value}
                     value={i.value}
                     onSelect={run}
-                    className="flex cursor-pointer items-center justify-between px-3 py-1.5 text-fg-2 data-[selected=true]:bg-raised data-[selected=true]:text-fg"
+                    className="group flex cursor-pointer items-center justify-between px-3 py-1.5 text-fg-2 data-[selected=true]:bg-accent data-[selected=true]:text-bg"
                   >
                     <span>
-                      <span className="text-fg-3 group-data-[selected=true]:text-accent">› </span>
+                      <span className="text-fg-3 group-data-[selected=true]:text-bg">
+                        <span className="group-data-[selected=true]:hidden">{"  "}</span>
+                        <span className="hidden group-data-[selected=true]:inline">▶ </span>
+                      </span>
                       {i.value}
                     </span>
-                    <span className="text-[10px] text-fg-3">{i.hint}</span>
+                    <span className="text-[10px] text-fg-3 group-data-[selected=true]:text-bg/70">{i.hint}</span>
                   </Command.Item>
                 ))}
               </Command.List>

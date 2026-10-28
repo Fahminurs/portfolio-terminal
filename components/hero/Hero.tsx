@@ -7,6 +7,7 @@ import { TypeLine } from "@/components/fx/TypeLine";
 import { useShell } from "@/components/shell/ShellProvider";
 import { scrollToId } from "@/lib/utils";
 import { BoardViewport } from "./BoardViewport";
+import { Prompt } from "@/components/ui/Prompt";
 
 export function Hero() {
   const { resumeOpen, setResumeOpen } = useShell();
@@ -30,7 +31,7 @@ export function Hero() {
 
       <div className="flex flex-1 flex-col justify-center px-4 pb-6 pt-14 md:px-8">
         <p className="mb-8 text-[12px] text-fg-2">
-          <span className="text-fg-3">guest@fahmi:~$ </span>
+          <Prompt />
           <TypeLine text="whoami" delay={300} cps={14} cursor />
         </p>
 

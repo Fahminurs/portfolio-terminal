@@ -4,6 +4,7 @@ import "asciinema-player/dist/bundle/asciinema-player.css";
 import { useEffect, useRef } from "react";
 import { useCalm } from "@/lib/calm";
 import { NoSignal } from "@/components/ui/NoSignal";
+import { TuiWindow } from "@/components/ui/TuiWindow";
 
 type Props = {
   /** /casts/*.cast — real `asciinema rec` output only (§6.7-A) */
@@ -11,10 +12,11 @@ type Props = {
   label: string;
   cols?: number;
   rows?: number;
+  on?: "bg" | "surface";
 };
 
 /** asciinema recording, loaded only when scrolled near. Missing cast → [ no signal ]. */
-export function CastPlayer({ src, label, cols = 100, rows = 22 }: Props) {
+export function CastPlayer({ src, label, cols = 100, rows = 22, on }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const calm = useCalm();
 
@@ -55,11 +57,8 @@ export function CastPlayer({ src, label, cols = 100, rows = 22 }: Props) {
     return <NoSignal label={label} reason="rekaman asciinema belum ada — lihat PRD §11.7" />;
 
   return (
-    <figure className="border border-line bg-bg">
-      <figcaption className="border-b border-line px-3 py-1.5 text-[10px] text-fg-3">
-        <span className="text-fg-2">$ asciinema play</span> {label}
-      </figcaption>
+    <TuiWindow on={on} title={<>asciinema play {label}</>}>
       <div ref={ref} className="min-h-40" />
-    </figure>
+    </TuiWindow>
   );
 }

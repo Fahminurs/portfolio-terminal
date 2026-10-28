@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { sections } from "@/content/data";
 import { RequestPath } from "@/components/ui/RequestPath";
+import { Prompt } from "@/components/ui/Prompt";
 
 figlet.parseFont("ANSI Regular", ansiRegular);
 // solid blocks, no shadow glyphs → reads as "404" even at small sizes.
@@ -18,7 +19,8 @@ export default function NotFound() {
     <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center gap-7 px-4 py-16 text-[12px] md:px-8">
       <div>
         <p className="text-fg-2">
-          <span className="text-fg-3">guest@fahmi:~$ </span>cd{" "}
+          <Prompt />
+          <span className="text-fg">cd</span>{" "}
           <Suspense fallback="…">
             <RequestPath />
           </Suspense>
@@ -51,14 +53,16 @@ export default function NotFound() {
 
       <div>
         <p className="text-fg-2">
-          <span className="text-fg-3">guest@fahmi:~$ </span>ls /
+          <Prompt />
+          <span className="text-fg">ls</span> <span className="text-term-cyan">--color</span> /
         </p>
         <ul className="mt-2 grid gap-1">
           {sections.map((s) => (
             <li key={s.id}>
               <Link href={`/#${s.id}`} className="group text-fg-2 hover:text-accent">
                 <span className="text-fg-3">drwxr-xr-x  {s.n}  </span>
-                <span className="group-hover:underline">{s.label}/</span>
+                {/* directories are bold blue in `ls --color` */}
+                <span className="font-bold text-term-blue group-hover:underline">{s.label}/</span>
                 <span className="hidden text-fg-3 sm:inline">  # {s.cmd}</span>
               </Link>
             </li>
@@ -66,7 +70,7 @@ export default function NotFound() {
         </ul>
       </div>
       <p className="text-fg-2">
-        <span className="text-fg-3">guest@fahmi:~$ </span>
+        <Prompt />
         <span className="cursor-block" />
       </p>
     </main>

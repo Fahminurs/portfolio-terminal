@@ -1,3 +1,5 @@
+import { TuiWindow } from "@/components/ui/TuiWindow";
+
 type Props = {
   /** exact line the server writes, e.g. "MASUK:BERHASIL|D 123 DX|14:30:00" */
   command: string;
@@ -5,6 +7,7 @@ type Props = {
   /** how many leading bytes to draw */
   bytes?: number;
   source: string;
+  on?: "bg" | "surface";
 };
 
 const BIT = 22; // px per bit
@@ -21,7 +24,7 @@ function frame(byte: number) {
  * UART timing diagram drawn from the real command string (§6.7-B). Rendered on the server
  * as inline SVG so it follows the theme tokens and ships no JS.
  */
-export function UartWaveform({ command, baud, bytes = 3, source }: Props) {
+export function UartWaveform({ command, baud, bytes = 3, source, on }: Props) {
   const chars = [...command.slice(0, bytes)];
   const levels = [
     ...Array(IDLE).fill(1),
@@ -38,13 +41,10 @@ export function UartWaveform({ command, baud, bytes = 3, source }: Props) {
   });
 
   return (
-    <figure className="border border-line bg-bg">
-      <figcaption className="flex flex-wrap justify-between gap-2 border-b border-line px-3 py-1.5 text-[10px] text-fg-3">
-        <span>
-          <span className="text-fg-2">TX</span> laptop → esp32 · {baud} baud · 8N1 · 1 bit = {bitUs} µs
-        </span>
-        <span>{source}</span>
-      </figcaption>
+    <TuiWindow on={on} title={<>uart.tx — {baud} 8N1</>} right={source}>
+      <p className="px-3 pt-1 text-[10px] text-fg-3">
+        <span className="text-fg-2">TX</span> laptop → esp32 · 1 bit = {bitUs} µs
+      </p>
       <div className="overflow-x-auto px-3 py-3">
         <svg
           viewBox={`0 0 ${width} 92`}
@@ -62,7 +62,7 @@ export function UartWaveform({ command, baud, bytes = 3, source }: Props) {
                 <rect x={x0} y={8} width={BIT} height={50} fill="var(--color-raised)" />
                 <rect x={x0 + 9 * BIT} y={8} width={BIT} height={50} fill="var(--color-raised)" />
                 <line x1={x0} x2={x0} y1={4} y2={62} stroke="var(--color-line-2)" strokeDasharray="2 3" />
-                <text x={x0 + 5 * BIT} y={6} textAnchor="middle" fontSize={10} fill="var(--color-accent)">
+                <text x={x0 + 5 * BIT} y={6} textAnchor="middle" fontSize={10} fill="var(--color-term-yellow)">
                   &apos;{c}&apos; 0x{code.toString(16).toUpperCase().padStart(2, "0")}
                 </text>
                 {["S", "0", "1", "2", "3", "4", "5", "6", "7", "P"].map((t, i) => (
@@ -72,7 +72,7 @@ export function UartWaveform({ command, baud, bytes = 3, source }: Props) {
                     y={76}
                     textAnchor="middle"
                     fontSize={9}
-                    fill="var(--color-fg-3)"
+                    fill={i === 0 ? "var(--color-term-red)" : i === 9 ? "var(--color-term-green)" : "var(--color-term-cyan)"}
                   >
                     {t}
                   </text>
@@ -82,7 +82,9 @@ export function UartWaveform({ command, baud, bytes = 3, source }: Props) {
           })}
           <path d={d} fill="none" stroke="var(--color-fg)" strokeWidth={1.5} />
           <text x={0} y={90} fontSize={9} fill="var(--color-fg-3)">
-            idle=1 · S=start(0) · 0–7 LSB first · P=stop(1)
+            idle=1 · <tspan fill="var(--color-term-red)">S</tspan>=start(0) ·{" "}
+            <tspan fill="var(--color-term-cyan)">0–7</tspan> LSB first ·{" "}
+            <tspan fill="var(--color-term-green)">P</tspan>=stop(1)
           </text>
         </svg>
       </div>
@@ -91,6 +93,6 @@ export function UartWaveform({ command, baud, bytes = 3, source }: Props) {
         {command}
         <span className="text-fg-3">\n</span>
       </p>
-    </figure>
+    </TuiWindow>
   );
 }
