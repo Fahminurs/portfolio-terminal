@@ -118,11 +118,15 @@ export function Statusline() {
                       }}
                       aria-current={on ? "true" : undefined}
                       className={cn(
-                        "flex min-h-11 w-full items-center gap-3 border-b border-line px-4 text-left text-[13px]",
+                        "flex min-h-11 w-full items-center gap-2.5 border-b border-line px-4 text-left text-[13px]",
                         on ? "tui-sel" : "text-fg-2 active:bg-raised",
                       )}
                     >
-                      <span className={cn("w-6 tabular-nums", on ? "" : "text-fg-3")}>{on ? `▶${s.n}` : ` ${s.n}`}</span>
+                      {/* fixed columns: cursor marker, then number — never glued together */}
+                      <span aria-hidden className="w-3 shrink-0 text-center text-[11px]">
+                        {on ? "▶" : ""}
+                      </span>
+                      <span className={cn("w-4 shrink-0 tabular-nums", on ? "font-bold" : "text-fg-3")}>{s.n}</span>
                       <span className="flex-1">
                         {s.label}
                         {on && "*"}
