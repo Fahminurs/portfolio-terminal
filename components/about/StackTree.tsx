@@ -2,6 +2,8 @@
 
 import { stackUses } from "@/content/data";
 import { cn } from "@/lib/utils";
+import { langColor } from "@/lib/lang";
+import { TechIcon } from "@/components/ui/TechIcon";
 
 /** Hover/focus a tag → rows in Projects that use it get marked (§5.3). */
 function mark(tag: string | null) {
@@ -30,10 +32,11 @@ function Branch({ name, tags, last }: { name: string; tags: string[]; last?: boo
                 onBlur={() => mark(null)}
                 title={n ? `dipakai di ${n} projek` : "hanya di repo archive"}
                 className={cn(
-                  "border border-line px-2 py-1.5 text-[11px] sm:px-1.5 sm:py-px transition-colors hover:border-accent hover:text-accent",
+                  "group flex items-center gap-1.5 border border-line px-2 py-1.5 text-[11px] sm:px-1.5 sm:py-px transition-colors hover:border-accent hover:text-accent",
                   n ? "text-fg-2" : "text-fg-3",
                 )}
               >
+                <TechIcon name={t} className={cn(langColor(t, ""), "group-hover:text-accent")} />
                 {t}
                 {n > 0 && <sup className="ml-0.5 text-[8px] text-fg-3">×{n}</sup>}
               </button>

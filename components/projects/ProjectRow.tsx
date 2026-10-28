@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from "react";
 import type { Project } from "@/content/data";
 import { cn, OPEN_PROJECT_EVENT } from "@/lib/utils";
 import { langColor } from "@/lib/lang";
+import { TechIcon } from "@/components/ui/TechIcon";
 
 type Props = {
   project: Project;
@@ -63,8 +64,8 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
           <p className="max-w-[62ch] font-prose text-[14px] leading-[1.65] text-fg-2">{p.summary}</p>
           <ul className="flex flex-wrap gap-1.5" aria-label="Stack">
             {p.stack.map((s) => (
-              <li key={s} className="border border-line px-1.5 py-px text-[10.5px] text-fg-2">
-                <span className={langColor(s)}>{s[0]}·</span>
+              <li key={s} className="flex items-center gap-1.5 border border-line px-1.5 py-px text-[10.5px] text-fg-2">
+                <TechIcon name={s} className={langColor(s, "text-fg-3")} />
                 {s}
               </li>
             ))}

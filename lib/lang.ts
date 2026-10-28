@@ -9,7 +9,7 @@ const LANGS: [RegExp, string][] = [
   [/flutter|dart/i, "text-term-green"],
 ];
 
-export function langColor(lang: string | null | undefined) {
-  if (!lang) return "text-fg-3";
-  return LANGS.find(([re]) => re.test(lang))?.[1] ?? "text-fg-3";
+export function langColor(lang: string | null | undefined, fallback = "text-fg-3") {
+  if (!lang) return fallback;
+  return LANGS.find(([re]) => re.test(lang))?.[1] ?? fallback;
 }
