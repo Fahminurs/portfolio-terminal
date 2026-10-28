@@ -20,6 +20,20 @@ const departure = localFont({
   display: "swap",
 });
 
+// JetBrains Mono's latin subset has no box-drawing glyphs, so ─┌┤ fell back to a ~1.6× wider
+// font and every ASCII diagram drifted. Departure Mono has them; scale its 0.636em advance
+// down to JetBrains' 0.6em so box art and text share one grid.
+const boxDrawing = localFont({
+  src: "./fonts/DepartureMono-Regular.woff2",
+  variable: "--font-box",
+  display: "swap",
+  adjustFontFallback: false,
+  declarations: [
+    { prop: "unicode-range", value: "U+2500-259F" },
+    { prop: "size-adjust", value: "94.3%" },
+  ],
+});
+
 export const metadata: Metadata = {
   title: "Fahmi Nursafaat — Computer Engineer · Software & Embedded",
   description:
@@ -56,7 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${jetbrains.variable} ${plex.variable} ${departure.variable}`}
+      className={`${jetbrains.variable} ${plex.variable} ${departure.variable} ${boxDrawing.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: preload }} />

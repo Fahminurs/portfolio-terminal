@@ -172,7 +172,7 @@ export function Statusline() {
 
       <div
         ref={tabsRef}
-        className="scrollbar-none hidden min-w-0 flex-1 items-stretch overflow-x-auto xl:flex"
+        className="scrollbar-none hidden min-w-0 flex-1 items-stretch overflow-x-auto border-l border-line-2 xl:flex"
       >
         {sections.map((s) => (
           <button
@@ -181,7 +181,8 @@ export function Statusline() {
             onClick={() => scrollToId(s.id)}
             className={cn(
               "shrink-0 px-2.5 transition-colors",
-              active === s.id ? "tui-sel" : "text-fg-3 hover:bg-raised hover:text-fg-2",
+              // active window = light inverse video (tmux style) — amber stays reserved for "cari"
+              active === s.id ? "bg-fg font-bold text-bg" : "text-fg-3 hover:bg-raised hover:text-fg-2",
             )}
           >
             {s.n}:{s.label}

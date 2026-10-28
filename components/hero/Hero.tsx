@@ -42,9 +42,9 @@ export function Hero() {
             </span>
 
             <h1 className="font-display text-[44px] leading-[0.95] tracking-[-0.01em] text-fg sm:text-[64px] xl:text-[80px]">
-              <DecryptedText text={profile.first} speed={34} />
+              <DecryptedText text={profile.first} speed={34} trigger="view" />
               <span className="block pl-[14%]">
-                <DecryptedText text={profile.last} speed={30} />
+                <DecryptedText text={profile.last} speed={30} trigger="view" />
                 <span className="text-accent">_</span>
               </span>
             </h1>

@@ -27,7 +27,8 @@
   --color-warn: var(--color-term-yellow);
   --color-err: var(--color-term-red);
 
-  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  /* --font-box only covers U+2500–259F (box drawing + blocks); everything else → JetBrains */
+  --font-mono: var(--font-box), var(--font-jetbrains), ui-monospace, monospace;
   --font-display: var(--font-display-face), var(--font-jetbrains), monospace;
   --font-prose: var(--font-plex), system-ui, sans-serif;
 
@@ -227,11 +228,18 @@ html { scrollbar-color: var(--color-accent-dim) var(--color-surface); }
   animation: scan-in 360ms steps(12, end) both;
   animation-delay: var(--reveal-delay, 0ms);
 }
+/* hero serial monitor: the newest line types in left → right */
+@keyframes line-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+:root:not([data-plain]) .serial-line:last-child { animation: line-in 280ms steps(18, end) both; }
+
 /* opening a project's inspect panel prints the same way */
 :root:not([data-plain]) .tui-scan:not([hidden]) { animation: scan-in 300ms steps(10, end) both; }
 @media (prefers-reduced-motion: reduce) {
   :root[data-js] [data-reveal]:not([data-shown]) { clip-path: none; }
-  :root[data-js] [data-reveal][data-shown], .tui-scan:not([hidden]) { animation: none; }
+  :root[data-js] [data-reveal][data-shown], .tui-scan:not([hidden]), .serial-line:last-child { animation: none; }
 }
 
 /* stack tag hover → mark project rows that use it (§5.3) */

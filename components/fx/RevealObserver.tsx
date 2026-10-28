@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { isBooted, onBooted } from "@/lib/visits";
 
 const STEP_MS = 70;
 const MAX_STAGGER = 5;
@@ -17,6 +18,7 @@ export function RevealObserver() {
 
     const show = new IntersectionObserver(
       (entries) => {
+        if (!isBooted()) return; // re-checked below once the boot log lifts
         let n = 0;
         for (const e of entries) {
           const el = e.target as HTMLElement;
@@ -49,10 +51,19 @@ export function RevealObserver() {
     const mo = new MutationObserver(watch);
     mo.observe(document.body, { childList: true, subtree: true });
 
+    // blocks already on screen under the boot log: re-observe so the IO reports them fresh
+    const stop = onBooted(() =>
+      document.querySelectorAll("[data-reveal]:not([data-shown])").forEach((el) => {
+        show.unobserve(el);
+        show.observe(el);
+      }),
+    );
+
     return () => {
       show.disconnect();
       rearm.disconnect();
       mo.disconnect();
+      stop();
     };
   }, []);
 
