@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useInView } from "motion/react";
+import { motion } from "motion/react";
+import { useVisits } from "@/lib/visits";
 import { useRef } from "react";
 import { achievements, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
@@ -75,12 +76,12 @@ function CaseCard({ a, i }: { a: (typeof achievements)[number]; i: number }) {
   );
 }
 
-/** Evidence board: HQ node, dashed strings drawn in when seen, three tilted case files. */
+/** Evidence board: HQ node, dashed strings drawn in on every visit, three tilted case files. */
 export function Records() {
   const ref = useRef<HTMLDivElement>(null);
-  const seen = useInView(ref, { once: true, margin: "0px 0px -25% 0px" });
+  const { visits } = useVisits(ref, "0px 0px -25% 0px");
   const calm = useCalm();
-  const draw = seen || calm;
+  const draw = visits > 0 || calm;
 
   return (
     <section id={s.id} aria-label="Achievements" className="relative border-b border-line">
@@ -104,11 +105,13 @@ export function Records() {
                 {/* the dashes stay dashed; a solid mask stroke is what gets "drawn" */}
                 <mask id={`string-${i}`} maskUnits="userSpaceOnUse">
                   <motion.path
+                    // new key per visit → the string is drawn again from 0
+                    key={visits}
                     d={d}
                     fill="none"
                     stroke="#fff"
                     strokeWidth={6}
-                    initial={false}
+                    initial={draw && !calm ? { pathLength: 0 } : false}
                     animate={{ pathLength: draw ? 1 : 0 }}
                     transition={{ duration: calm ? 0 : 0.6, delay: calm ? 0 : i * 0.12, ease: [0.2, 0.8, 0.2, 1] }}
                   />

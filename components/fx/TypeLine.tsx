@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useInView } from "motion/react";
 import { useCalm } from "@/lib/calm";
+import { useVisits } from "@/lib/visits";
 
 type Props = {
   text: string;
@@ -12,15 +12,15 @@ type Props = {
   cursor?: boolean;
 };
 
-/** Types a single line once it scrolls into view (inspired by React Bits TextType). */
+/** Types a single line every time it scrolls back into view (inspired by React Bits TextType). */
 export function TypeLine({ text, className, delay = 0, cps = 40, cursor = false }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
+  const { visits } = useVisits(ref, "0px");
   const reduce = useCalm();
   const [n, setN] = useState(0);
 
   useEffect(() => {
-    if (!inView) return;
+    if (!visits) return;
     if (reduce) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- instant reveal for reduced motion
       setN(text.length);
@@ -28,6 +28,7 @@ export function TypeLine({ text, className, delay = 0, cps = 40, cursor = false 
     }
     let i = 0;
     let id = 0;
+    setN(0);
     const t = window.setTimeout(() => {
       id = window.setInterval(() => {
         i++;
@@ -39,7 +40,7 @@ export function TypeLine({ text, className, delay = 0, cps = 40, cursor = false 
       window.clearTimeout(t);
       window.clearInterval(id);
     };
-  }, [inView, reduce, text, delay, cps]);
+  }, [visits, reduce, text, delay, cps]);
 
   return (
     <span ref={ref} className={className}>

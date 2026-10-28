@@ -1,11 +1,12 @@
 "use client";
 
-import { motion, useInView } from "motion/react";
+import { motion } from "motion/react";
 import { useRef } from "react";
 import { experience, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { NoSignal } from "@/components/ui/NoSignal";
 import { useCalm } from "@/lib/calm";
+import { useVisits } from "@/lib/visits";
 import { cn } from "@/lib/utils";
 
 const s = sections[5];
@@ -17,12 +18,12 @@ const TAG_COLOR: Record<string, string> = {
   ORG: "text-term-magenta",
 };
 
-/** `tail -f`: lines arrive from the bottom one by one the first time the log is seen (§5.7). */
+/** `tail -f`: lines arrive from the bottom one by one every time the log comes into view (§5.7). */
 export function Experience() {
   const ref = useRef<HTMLOListElement>(null);
-  const seen = useInView(ref, { once: true, margin: "0px 0px -20% 0px" });
+  const { visits } = useVisits(ref, "0px 0px -20% 0px");
   const calm = useCalm();
-  const show = seen || calm;
+  const show = visits > 0 || calm;
 
   return (
     <section id={s.id} aria-label="Experience" className="relative border-b border-line">
@@ -30,8 +31,9 @@ export function Experience() {
       <ol ref={ref} className="mt-8 border-t border-line">
         {experience.map((e, i) => (
           <motion.li
-            key={e.title}
-            initial={false}
+            // new key per visit → remount from the hidden state, so the tail replays
+            key={`${e.title}-${visits}`}
+            initial={show && !calm ? { opacity: 0, y: 14 } : false}
             animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
             transition={{ duration: 0.22, delay: calm ? 0 : (experience.length - 1 - i) * 0.18, ease: [0.2, 0.8, 0.2, 1] }}
             className="grid gap-4 border-b border-line px-4 py-6 last:border-0 md:grid-cols-[120px_1fr_180px] md:px-8"
