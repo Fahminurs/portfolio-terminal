@@ -10,7 +10,7 @@ export function About() {
   return (
     <section id={s.id} aria-label="About" className="relative border-b border-line">
       <SectionHead n={s.n} label={s.label} cmd={s.cmd} title="About" />
-      <div className="mt-8 grid border-t border-line md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,2.25fr)_minmax(0,1.55fr)]">
+      <div data-reveal className="mt-8 grid border-t border-line md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,2.25fr)_minmax(0,1.55fr)]">
         <div className="border-line p-4 md:border-r md:p-8">
           <div className="mx-auto max-w-[240px] md:sticky md:top-14 md:max-w-none">
             <DitherReveal alt="Foto Fahmi Nursafaat" label="portrait.dither.png" className="aspect-[4/5]" />
@@ -57,7 +57,7 @@ export function About() {
         </div>
       </div>
 
-      <div className="border-t border-line p-4 md:px-8 md:py-6">
+      <div data-reveal className="border-t border-line p-4 md:px-8 md:py-6">
         <p className="mb-3 text-[11px] text-fg-3">
           <Prompt />
           <span className="text-fg">tree stack/</span>

@@ -27,6 +27,7 @@ function CaseCard({ a, i }: { a: (typeof achievements)[number]; i: number }) {
   return (
     <article
       ref={ref}
+      data-reveal
       onPointerMove={onMove}
       onPointerLeave={reset}
       style={{ transform: `rotate(${TILT[i]}deg)` }}

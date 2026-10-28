@@ -61,6 +61,7 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
         {/* ≥1280px: ruler dial. Below (phone + tablet): centered wrapping chips, as in the wireframe */}
         <LayoutGroup>
           <div
+            data-reveal
             role="radiogroup"
             aria-label="Filter kategori repo"
             onKeyDown={onKey}
@@ -113,7 +114,7 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
         </LayoutGroup>
       </div>
 
-      <motion.ul layout={!calm} className="mt-6 grid grid-cols-2 border-t border-line">
+      <motion.ul data-reveal layout={!calm} className="mt-6 grid grid-cols-2 border-t border-line">
         <AnimatePresence initial={false} mode="popLayout">
           {shown.map((r, i) => (
             <motion.li

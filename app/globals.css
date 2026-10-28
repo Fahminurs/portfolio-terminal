@@ -216,6 +216,24 @@ html { scrollbar-color: var(--color-accent-dim) var(--color-surface); }
 /* contact flags: the focused field's row lights up like an active prompt */
 .term-field:focus-within { border-color: var(--color-line-2); background: var(--color-surface); }
 
+/* "printed like terminal output": content scans in top → bottom in 12 hard steps, once.
+   Only when JS is running ([data-js]) so no-JS / crawlers always see content. */
+@keyframes scan-in {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+:root[data-js]:not([data-plain]) [data-reveal]:not([data-shown]) { clip-path: inset(0 0 100% 0); }
+:root[data-js]:not([data-plain]) [data-reveal][data-shown] {
+  animation: scan-in 360ms steps(12, end) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+/* opening a project's inspect panel prints the same way */
+:root:not([data-plain]) .tui-scan:not([hidden]) { animation: scan-in 300ms steps(10, end) both; }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-js] [data-reveal]:not([data-shown]) { clip-path: none; }
+  :root[data-js] [data-reveal][data-shown], .tui-scan:not([hidden]) { animation: none; }
+}
+
 /* stack tag hover → mark project rows that use it (§5.3) */
 article.stack-hit { box-shadow: inset 2px 0 0 var(--color-accent); background: var(--color-surface); }
 article.stack-hit h3::after { content: "  ← uses"; font-family: var(--font-mono); font-size: 11px; color: var(--color-accent); }
@@ -259,6 +277,7 @@ article.stack-hit h3::after { content: "  ← uses"; font-family: var(--font-mon
   section { break-inside: avoid-page; min-height: 0 !important; }
   /* scroll-triggered reveals may never have fired — print everything */
   li, article { opacity: 1 !important; transform: none !important; }
+  [data-reveal] { clip-path: none !important; animation: none !important; }
   article { break-inside: avoid; }
   a[href^="http"]::after {
     content: " (" attr(href) ")";

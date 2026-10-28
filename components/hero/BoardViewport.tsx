@@ -65,6 +65,7 @@ export function BoardViewport() {
     <TuiWindow title={<>VIEWPORT_01 — esp32.pinout</>} className="print:hidden">
       <pre
         aria-hidden
+        data-reveal
         className="overflow-x-auto px-3 py-3 text-[9.5px] leading-[1.2] text-fg-2 sm:text-[10.5px]"
       >
         {BOARD.split("\n").map((l, i) => (

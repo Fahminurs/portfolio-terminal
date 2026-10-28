@@ -64,7 +64,7 @@ export function Contact() {
 
   return (
     <section id={s.id} aria-label="Contact" className="relative">
-      <SectionHead n={s.n} label={s.label} cmd={s.cmd} title="Contact" />
+      <SectionHead n={s.n} label={s.label} cmd={s.cmd} title="Contact" still />
       <div className="mt-8 grid border-t border-line lg:grid-cols-[1fr_1.2fr]">
         <div className="flex flex-col justify-between gap-6 border-line p-4 md:p-8 lg:border-r">
           <p className="font-display text-[40px] leading-[0.95] text-fg md:text-[56px]">

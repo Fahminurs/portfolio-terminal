@@ -1,4 +1,5 @@
 import { DecryptedText } from "@/components/fx/DecryptedText";
+import { TypeLine } from "@/components/fx/TypeLine";
 import { cn } from "@/lib/utils";
 import { Prompt } from "./Prompt";
 
@@ -10,10 +11,12 @@ type Props = {
   count?: string;
   right?: React.ReactNode;
   className?: string;
+  /** static head (no typing / decrypt) — for the ~30% of sections kept calm on purpose */
+  still?: boolean;
 };
 
 /** Pane label (tmux-style, replaces wireframe FIG tab) + prompt line + section title. */
-export function SectionHead({ n, label, cmd, title, count, right, className }: Props) {
+export function SectionHead({ n, label, cmd, title, count, right, className, still }: Props) {
   return (
     <header className={cn("relative", className)}>
       <span className="absolute -top-px left-0 border border-t-0 border-line bg-bg px-2.5 py-0.5 text-[10px] tracking-wide text-fg-3 md:left-8">
@@ -23,10 +26,10 @@ export function SectionHead({ n, label, cmd, title, count, right, className }: P
         <div>
           <p className="mb-2 text-[11px] text-fg-3">
             <Prompt />
-            <span className="text-fg">{cmd}</span>
+            {still ? <span className="text-fg">{cmd}</span> : <TypeLine text={cmd} cps={38} className="text-fg" />}
           </p>
           <h2 className="flex items-center gap-3 font-display text-[22px] uppercase tracking-[0.04em] text-fg md:text-[26px]">
-            <DecryptedText text={title} trigger="view" />
+            {still ? title : <DecryptedText text={title} trigger="view" />}
             {count && (
               <span className="bg-fg px-1.5 py-px font-mono text-[10px] tracking-normal text-bg">
                 {count}

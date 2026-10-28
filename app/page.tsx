@@ -4,6 +4,7 @@ import { PaneNav, Titlebar } from "@/components/shell/Chrome";
 import { Statusline } from "@/components/shell/Statusline";
 import { CommandPalette } from "@/components/shell/CommandPalette";
 import { KeyHelp } from "@/components/shell/KeyHelp";
+import { RevealObserver } from "@/components/fx/RevealObserver";
 import { Hero } from "@/components/hero/Hero";
 import { ResumePanel } from "@/components/hero/ResumePanel";
 import { About } from "@/components/about/About";
@@ -45,6 +46,7 @@ export default function Home() {
       <Statusline />
       <CommandPalette />
       <KeyHelp />
+      <RevealObserver />
     </ShellProvider>
   );
 }

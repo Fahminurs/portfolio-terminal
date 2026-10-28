@@ -6,7 +6,7 @@ const s = sections[4];
 export function Education() {
   return (
     <section id={s.id} aria-label="Education" className="relative border-b border-line">
-      <SectionHead n={s.n} label={s.label} cmd={s.cmd} title="Pendidikan" />
+      <SectionHead n={s.n} label={s.label} cmd={s.cmd} title="Pendidikan" still />
       <div className="mt-8 border-t border-line px-4 py-6 md:px-8">
         <ol className="flex flex-col gap-7">
           {education.map((e, i) => (

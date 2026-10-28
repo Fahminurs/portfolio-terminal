@@ -50,7 +50,7 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
 
   return (
     // last row: the section's own border-b closes it — a second line would sit above the next pane label
-    <article id={`p-${p.slug}`} className="border-b border-line last:border-b-0">
+    <article id={`p-${p.slug}`} data-reveal className="border-b border-line last:border-b-0">
       <div className={cn("grid md:grid-cols-[340px_1fr]", flip && "md:grid-cols-[1fr_340px]")}>
         <div className={cn("p-4 md:p-6 print:hidden", flip && "md:order-2")}>{media}</div>
         <div className={cn("flex flex-col gap-3 border-line p-4 md:p-6", flip ? "md:border-r" : "md:border-l")}>
@@ -96,7 +96,7 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
         </div>
       </div>
       {details && (
-        <div id={bodyId} hidden={!open} className="border-t border-dashed border-line-2 bg-surface px-4 py-5 md:px-6">
+        <div id={bodyId} hidden={!open} className="tui-scan border-t border-dashed border-line-2 bg-surface px-4 py-5 md:px-6">
           {details}
         </div>
       )}
