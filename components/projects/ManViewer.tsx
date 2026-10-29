@@ -209,6 +209,9 @@ function Peek({ side, k, fig, onGo }: { side: "prev" | "next"; k: number; fig: F
 }
 
 const LINE_PX = 20; // man pane line-height, for the `less` line counter
+const PULL_Q = 100; // px of pull that completes `:q ⏎`
+const PULL_DEMO_KEY = "fahmi:man-pull-demo";
+const PULL_DEMOS = 3;
 
 function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -223,6 +226,21 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
   const figs = man.gallery;
   const n = figs.length;
   const go = (d: number) => setI((v) => (v + d + n) % n);
+  // every exit goes through history, so the phone's Back gesture closes the viewer instead of leaving the page
+  // (a per-open token: history.state survives reloads, so a bare flag could be a stale one and Back would leave the page)
+  const token = useRef<string | null>(null);
+  const close = () => (token.current && history.state?.manViewer === token.current ? history.back() : onClose());
+  const [pull, setPull] = useState(0);
+  // the first few opens act the gesture out (frame dips, a ghost `:q ⏎` appears) so nobody has to read the hint
+  const [demo, setDemo] = useState(() => {
+    try {
+      return Number(localStorage.getItem(PULL_DEMO_KEY) ?? 0) < PULL_DEMOS;
+    } catch {
+      return true;
+    }
+  });
+  const pullFrom = useRef<number | null>(null);
+  const typed = pull < 16 ? "" : pull < 50 ? ":" : pull < PULL_Q ? ":q" : ":q ⏎";
 
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
@@ -230,11 +248,24 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
     const overflow = html.style.overflow;
     dialog.current?.showModal();
     html.style.overflow = "hidden";
+    // ??= keeps one token across StrictMode's double effect run, so only one entry is pushed
+    token.current ??= `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    if (history.state?.manViewer !== token.current) {
+      history.pushState({ ...history.state, manViewer: token.current }, "");
+      try {
+        localStorage.setItem(PULL_DEMO_KEY, String(Number(localStorage.getItem(PULL_DEMO_KEY) ?? 0) + 1));
+      } catch {}
+    }
     return () => {
       html.style.overflow = overflow;
       opener?.focus({ preventScroll: true });
     };
   }, []);
+
+  useEffect(() => {
+    window.addEventListener("popstate", onClose);
+    return () => window.removeEventListener("popstate", onClose);
+  }, [onClose]);
 
   useEffect(() => {
     const p = createProjector(canvas.current!, stage.current!, figs.map((f) => f.src));
@@ -276,13 +307,13 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
       else if (k === "End") setI(n - 1);
       else if (/^[1-9]$/.test(k) && Number(k) <= n) setI(Number(k) - 1);
       else if (k === "j" || k === "k") page.current?.scrollBy({ top: k === "j" ? LINE_PX * 3 : -LINE_PX * 3 });
-      else if (k === "q" || k === "Escape") onClose();
+      else if (k === "q" || k === "Escape") close();
       else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [n, onClose]);
+  });
 
   const fig = figs[i];
   const num = (k: number) => String(k + 1).padStart(2, "0");
@@ -296,23 +327,73 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
       aria-label={`man ${man.slug}: ${man.title}`}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        close();
       }}
-      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      onMouseDown={(e) => e.target === e.currentTarget && close()}
       className="man fixed inset-0 m-auto h-[calc(100dvh-16px)] max-h-none w-[calc(100vw-16px)] max-w-none overflow-visible bg-transparent p-0 text-fg md:h-[min(88vh,780px)] md:w-[min(1180px,94vw)]"
     >
       <div
-        className="man-frame tui-shadow relative flex h-full flex-col border-[3px] border-double border-line-2 bg-surface md:grid md:grid-cols-[minmax(0,1.75fr)_minmax(300px,1fr)]"
-        style={{ "--tui-bg": "var(--color-surface)" } as React.CSSProperties}
+        className={cn(
+          "man-frame tui-shadow relative flex h-full flex-col border-[3px] border-double border-line-2 bg-surface md:grid md:grid-cols-[minmax(0,1.75fr)_minmax(300px,1fr)]",
+          demo && "man-demo",
+        )}
+        style={
+          {
+            "--tui-bg": "var(--color-surface)",
+            transform: pull ? `translateY(${Math.min(pull, 180) * 0.5}px)` : undefined,
+          } as React.CSSProperties
+        }
       >
         <span className="tui-title left-3 text-fg-2">
           ╡ <span className="text-accent">man</span> 1 {man.slug} ╞
         </span>
         <span className="tui-title right-3">
-          <button autoFocus onClick={onClose} className="text-fg-3 transition-colors hover:text-accent">
+          <button autoFocus onClick={close} className="text-fg-3 transition-colors hover:text-accent">
             [<span className="text-accent">q</span>] tutup
           </button>
         </span>
+
+        {/* phone: pull the handle down and it types vim's quit, `:` → `:q` → `:q ⏎`; let go on ⏎ to leave */}
+        <div
+          className="relative flex shrink-0 touch-none select-none justify-center border-b border-line pb-2 pt-3 md:hidden"
+          onPointerDown={(e) => {
+            setDemo(false);
+            pullFrom.current = e.clientY;
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={(e) => pullFrom.current !== null && setPull(Math.max(0, e.clientY - pullFrom.current))}
+          onPointerUp={() => {
+            const quit = pull >= PULL_Q;
+            pullFrom.current = null;
+            setPull(0);
+            if (quit) close();
+          }}
+          onPointerCancel={() => {
+            pullFrom.current = null;
+            setPull(0);
+          }}
+        >
+          {typed ? (
+            <span className="text-[12px] text-accent">
+              {typed}
+              {pull < PULL_Q && <span className="cursor-block ml-px" />}
+              {pull >= PULL_Q && <span className="text-fg-2"> lepas untuk keluar</span>}
+            </span>
+          ) : (
+            <>
+              <span className="man-demo-hint flex items-center gap-2 text-[10.5px] text-fg-3">
+                <span aria-hidden className="h-px w-6 bg-line-2" />
+                <span aria-hidden className="man-chev inline-block text-accent">▾</span> tarik ke bawah untuk{" "}
+                <span className="text-accent">:q</span>
+                <span aria-hidden className="h-px w-6 bg-line-2" />
+              </span>
+              {/* the ghost half of the demo: what pulling types */}
+              <span aria-hidden className="man-demo-ghost absolute inset-0 flex items-center opacity-0 justify-center text-[12px] text-accent">
+                <span className="mr-2 text-fg-3">⇣</span>:q ⏎
+              </span>
+            </>
+          )}
+        </div>
 
         {/* projector */}
         <div className="flex min-h-0 min-w-0 shrink-0 flex-col border-b border-line-2 md:border-b-0 md:border-r">
@@ -487,6 +568,9 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
               {pos.end && " (END)"}
             </span>
             <span className="hidden shrink-0 xl:inline">h/l · j/k · q</span>
+            <button onClick={close} className="-mr-2 shrink-0 bg-bg px-2.5 font-bold text-accent md:hidden">
+              :q keluar
+            </button>
           </p>
         </div>
       </div>
