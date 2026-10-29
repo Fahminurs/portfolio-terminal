@@ -75,6 +75,15 @@ export type CodeExcerpt = {
   src: string;
 };
 
+/** `src` is always a still (for a video figure: its poster) so the projector can draw it */
+export type Figure = { src: string; thumb: string; caption: string; video?: string };
+
+const figs = (slug: string, items: [file: string, caption: string, video?: string][]): Figure[] =>
+  items.map(([file, caption, video], i) => {
+    const n = String(i + 1).padStart(2, "0");
+    return { src: file.startsWith("/") ? file : `/media/gallery/${slug}/${file}`, thumb: `/media/gallery/${slug}/${n}.png`, caption, video };
+  });
+
 export type Project = {
   slug: string;
   category: string;
@@ -85,6 +94,8 @@ export type Project = {
   stack: string[];
   /** src/dither absent → [ no signal ] */
   media: { kind: "image" | "video"; label: string; src?: string; dither?: string };
+  /** click the media → `man <slug>` viewer; `thumb` is a 240px 1-bit mask like `dither` */
+  gallery?: Figure[];
   repo?: string;
   /** asciinema .cast under /public/casts — real recordings only (§6.7-A) */
   cast?: string;
@@ -118,7 +129,25 @@ export const projects: Project[] = [
     summary:
       "Mesin AI dari ekosistem ParkEasy — mendeteksi plat nomor kendaraan real-time (YOLOv8 + PaddleOCR), validasi ke database Supabase, lalu mengirim perintah buka/tutup gerbang ke ESP32 via UART. Termasuk streaming kamera MJPEG, WebSocket broadcast, dan monitoring slot parkir via sensor ToF. Dibuat untuk skripsi.",
     stack: ["Python", "YOLOv8", "PaddleOCR", "FastAPI", "ESP32"],
-    media: { kind: "video", label: "video_demo.mp4" },
+    media: {
+      kind: "image",
+      label: "gate_server.log",
+      src: "/media/parkeasy-ai-log.jpg",
+      dither: "/media/dither/parkeasy-ai-log.png",
+    },
+    gallery: figs("parkeasy-ai", [
+      ["/media/parkeasy-ai-log.jpg", "gate_server.py: serial ke ESP32 tersambung, sensor siap, lalu gerbang dibuka manual"],
+      ["02.webp", "FastAPI /docs: stream kamera masuk/keluar, manual open, reset, status"],
+      ["03.webp", "GET /status dipanggil langsung: serial dan kedua kamera aktif"],
+      ["04.webp", "POST /manual/open dipanggil langsung, server menjawab 200 dan plat dinormalisasi"],
+      ["05.webp", "ReDoc dari skema OpenAPI yang sama"],
+      ["06.webp", "Endpoint MJPEG /stream/masuk, diberi video uji sintetis (tanpa kamera fisik)"],
+      ["07.webp", "Endpoint MJPEG /stream/keluar, diberi video uji sintetis"],
+      ["08.webp", "Respons mentah GET /status"],
+      ["09.webp", "Log lengkap gate_server.py; DB error karena Supabase sengaja dummy di sandbox"],
+      ["10.webp", "Lalu lintas UART dua arah: sensor dari ESP32 (→) dan perintah server (←)"],
+      ["11.webp", "WebSocket /ws: frame log, jarak HC-SR04, dan status slot & servo ke dashboard"],
+    ]),
     repo: "https://github.com/Fahminurs/ParkEasy_AI",
     code: {
       repo: "ParkEasy_AI",
@@ -146,7 +175,21 @@ export const projects: Project[] = [
     summary:
       "Firmware ESP32 — komponen hardware dari ekosistem ParkEasy. Mengontrol servo palang gerbang, sensor ultrasonik HC-SR04 untuk deteksi kendaraan, sensor ToF VL53L1X untuk monitoring 3 slot parkir via multiplexer I2C, LCD 20x4, dan buzzer — semua dengan health monitoring otomatis dan komunikasi UART ke server AI.",
     stack: ["Arduino/C++", "ESP32", "VL53L1X", "HC-SR04"],
-    media: { kind: "image", label: "foto.jpg" },
+    media: {
+      kind: "image",
+      label: "DEMO SKRIPSI.mp4",
+      src: "/media/parkeasy-alat-lcd.jpg",
+      dither: "/media/dither/parkeasy-alat-lcd.png",
+    },
+    gallery: figs("parkeasy-alat", [
+      ["/media/parkeasy-alat-demo.jpg", "Video demo sidang skripsi: alur parkir masuk, monitoring petak, sampai keluar & bayar (4:15)", "/media/parkeasy-alat-demo.mp4"],
+      ["02.webp", "LCD 20x4 gerbang keluar: menunggu kendaraan didekatkan ke garis deteksi"],
+      ["03.webp", "LCD saat memindai: kamera aktif, progres deteksi plat"],
+      ["04.webp", "Prototipe gerbang: palang servo dan sensor dengan mobil uji"],
+      ["05.webp", "Dashboard manajemen petak: status 3 slot dari sensor VL53L1X, live"],
+      ["06.webp", "Dashboard gerbang: kamera masuk/keluar, mode darurat, log ESP32, dan aplikasi mobile"],
+      ["07.webp", "Akhir demo: plat AB 123 AR terbaca di gerbang keluar, saldo di aplikasi sudah terpotong"],
+    ]),
     repo: "https://github.com/Fahminurs/ParkEasy_Alat",
     uart: {
       command: "MASUK:BERHASIL|D 123 DX|14:30:00",
@@ -190,6 +233,7 @@ export const projects: Project[] = [
       src: "/media/chillstation-pcb.jpg",
       dither: "/media/dither/chillstation-pcb.png",
     },
+    gallery: figs("chillstation", [["/media/chillstation-pcb.jpg", "PCB Chillstation Billing yang sudah dirakit"]]),
     repo: "https://github.com/Fahminurs/Chillstation-Billing-PS",
   },
   {
@@ -232,7 +276,30 @@ export const projects: Project[] = [
     summary:
       "Sistem monitoring solar tracker dual-axis berbasis IoT, tersedia dalam versi web (Laravel, real-time data visualization) dan mobile (Flutter). Integrasi IoT API untuk manajemen akun dan tracking data secara real-time.",
     stack: ["Laravel", "Flutter", "IoT API"],
-    media: { kind: "image", label: "foto.jpg" },
+    media: {
+      kind: "image",
+      label: "helios-app.png",
+      src: "/media/helios-app.jpg",
+      dither: "/media/dither/helios-app.png",
+    },
+    gallery: figs("helios", [
+      ["/media/helios-app.jpg", "Aplikasi mobile Helios: login, monitoring, daftar perangkat"],
+      ["02.webp", "Splash screen"],
+      ["03.webp", "Login, dengan ilustrasi panel surya"],
+      ["04.webp", "Registrasi akun"],
+      ["05.webp", "Lupa password"],
+      ["06.webp", "Login dengan akun demo terisi"],
+      ["07.webp", "Info perangkat: kode, status servo & ESP32, cuaca, lokasi GPS"],
+      ["08.webp", "Monitoring: sudut panel horizontal/vertikal, arus, tegangan, baterai"],
+      ["09.webp", "Menu opsi perangkat"],
+      ["10.webp", "Ubah info perangkat"],
+      ["11.webp", "Daftar perangkat solar tracker yang terdaftar di akun"],
+      ["12.webp", "Tambah perangkat: kode perangkat + ambil lokasi GPS"],
+      ["13.webp", "Profil pengguna (data demo)"],
+      ["14.webp", "Ubah profil"],
+      ["15.webp", "Ganti password"],
+      ["16.webp", "Tentang aplikasi"],
+    ]),
     repo: "https://github.com/Fahminurs/Helios-Tracker",
   },
 ];

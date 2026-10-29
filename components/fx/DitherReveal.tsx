@@ -10,18 +10,20 @@ type Props = {
   alt: string;
   label: string;
   className?: string;
+  /** false when a parent control (e.g. ManTrigger's button) owns focus */
+  focusable?: boolean;
 };
 
 /**
  * 1-bit amber image that "develops" into the real photo row by row on hover/focus (§6.7-I).
  * The dither is an alpha mask filled with the accent, so it follows `theme`. No JS.
  */
-export function DitherReveal({ src, dither, alt, label, className }: Props) {
+export function DitherReveal({ src, dither, alt, label, className, focusable = true }: Props) {
   if (!src || !dither)
     return <NoSignal label={label} reason="foto/screenshot belum ada" className={cn("aspect-[4/3] min-h-0", className)} />;
 
   return (
-    <div tabIndex={0} className={cn("dither-reveal relative aspect-[4/3] overflow-hidden border border-line bg-bg", className)}>
+    <div tabIndex={focusable ? 0 : undefined} className={cn("dither-reveal relative aspect-[4/3] overflow-hidden border border-line bg-bg", className)}>
       <div
         aria-hidden
         className="absolute inset-0 bg-accent"

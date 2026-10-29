@@ -8,11 +8,27 @@ import { CodeExcerpt } from "@/components/media/CodeExcerpt";
 import { UartWaveform } from "@/components/media/UartWaveform";
 import { ProjectRow } from "./ProjectRow";
 import { ProjectCursor } from "./ProjectCursor";
+import { ManTrigger } from "./ManViewer";
 
 const s = sections[2];
 const PARKEASY = new Set(["parkeasy-ai", "parkeasy-alat"]);
 
 function Media({ p }: { p: Project }) {
+  if (p.media.kind === "image" && p.media.src && p.gallery?.length) {
+    const { slug, title, category, period, summary, stack, repo, gallery } = p;
+    return (
+      <ManTrigger man={{ slug, title, category, period, summary, stack, repo, gallery }}>
+        <DitherReveal
+          src={p.media.src}
+          dither={p.media.dither}
+          alt={p.title}
+          label={p.media.label}
+          focusable={false}
+          className="aspect-video md:aspect-[4/3]"
+        />
+      </ManTrigger>
+    );
+  }
   if (p.media.kind === "image")
     return (
       <DitherReveal

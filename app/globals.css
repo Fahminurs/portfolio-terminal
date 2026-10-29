@@ -175,7 +175,19 @@ body {
   transition: --reveal 420ms steps(12, end);
 }
 .dither-reveal:hover .dither-orig,
-.dither-reveal:focus-visible .dither-orig { --reveal: 100%; }
+.dither-reveal:focus-visible .dither-orig,
+.man-trigger:focus-visible .dither-orig { --reveal: 100%; }
+
+/* `man <slug>` viewer (ManViewer): native <dialog>, printed in like the inspect panel */
+dialog.man::backdrop { background: color-mix(in oklab, var(--color-bg) 84%, transparent); }
+/* like scan-in, but the clip leaves room for the border title and the block shadow */
+@keyframes man-in {
+  from { clip-path: inset(-12px -12px 100% -12px); }
+  to { clip-path: inset(-12px -12px -12px -12px); }
+}
+:root:not([data-plain]) dialog.man[open] .man-frame { animation: man-in 320ms steps(10, end) both; }
+@keyframes man-video-in { from { visibility: hidden; } }
+:root:not([data-plain]) .man-video { animation: man-video-in 1ms 480ms both; }
 @media (hover: none) {
   .dither-orig { --reveal: 100%; }
 }
