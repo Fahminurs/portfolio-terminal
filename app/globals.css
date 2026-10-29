@@ -332,20 +332,16 @@ article.stack-hit h3::after { content: "  ← uses"; font-family: var(--font-mon
   }
 }
 
-/* ===== `lpr resume` (ResumePanel): dot-matrix printout on green-bar continuous-form paper ===== */
+/* ===== `lpr resume` (ResumePanel): the real CV coming out of a dot-matrix printer ===== */
+/* each page rides continuous-form paper: tractor strips with sprocket holes, a perforation between pages */
 .resume-paper {
-  --paper: #eeebdf;
-  --bar: rgba(118, 160, 104, 0.2);
-  --ink: #1d1f1a;
-  --ink-dim: #5d6054;
   --hole: var(--color-surface);
   position: relative;
-  padding-inline: 30px; /* tractor-feed strips */
-  background: var(--paper);
-  color: var(--ink);
-  box-shadow: 0 10px 0 -4px rgba(0, 0, 0, 0.35);
+  padding-inline: 30px;
+  background: #f4f2ea;
+  border-bottom: 1px dashed rgba(29, 31, 26, 0.35);
 }
-/* sprocket holes every 2 lines, each strip torn off along a dashed perforation */
+.resume-paper:last-child { border-bottom: 0; box-shadow: 0 10px 0 -4px rgba(0, 0, 0, 0.35); }
 .resume-paper::before,
 .resume-paper::after {
   content: "";
@@ -357,42 +353,35 @@ article.stack-hit h3::after { content: "  ← uses"; font-family: var(--font-mon
 }
 .resume-paper::before { left: 0; border-right: 1px dashed rgba(29, 31, 26, 0.22); }
 .resume-paper::after { right: 0; border-left: 1px dashed rgba(29, 31, 26, 0.22); }
-.resume-ink {
-  /* green bars 3 lines tall, a perforated page break every 66 lines (1320px) */
-  background:
-    repeating-linear-gradient(to bottom, transparent 0 1319px, rgba(29, 31, 26, 0.28) 1319px 1320px),
-    repeating-linear-gradient(to bottom, var(--bar) 0 60px, transparent 60px 120px);
-  text-shadow: 0.35px 0 0 currentColor; /* a little double-strike */
+/* the band being printed: an inked ribbon line, and the head carriage sweeping along it */
+.resume-ribbon {
+  position: absolute;
+  inset-inline: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 0 40%, rgba(29, 31, 26, 0.16) 40% 60%, transparent 60%);
+  border-block: 1px solid rgba(29, 31, 26, 0.12);
 }
-.resume-dim { color: var(--ink-dim); }
-/* print head + ribbon riding the paper's leading edge while it prints */
 .resume-head {
-  height: 12px;
+  position: absolute;
+  width: 18px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
   background:
-    linear-gradient(to bottom, transparent 0 5px, #3a3c35 5px 7px, transparent 7px),
-    linear-gradient(to right, transparent 0 calc(50% - 22px), #26281f calc(50% - 22px) calc(50% + 22px), transparent calc(50% + 22px));
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.4));
+    linear-gradient(to bottom, transparent 0 13px, var(--accent) 13px 17px, transparent 17px) center / 4px 100% no-repeat,
+    #26281f;
+  border: 1px solid #0d0e0b;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
 }
 .resume-slot { box-shadow: inset 0 -3px 0 #050605; }
 @media (max-width: 639.98px) {
-  .resume-paper { padding-inline: 18px; }
+  .resume-paper { padding-inline: 16px; }
   .resume-paper::before,
   .resume-paper::after {
-    width: 18px;
-    background: radial-gradient(circle at 50% 50%, var(--hole) 0 3.5px, transparent 4px) 0 10px / 18px 40px repeat-y;
+    width: 16px;
+    background: radial-gradient(circle at 50% 50%, var(--hole) 0 3px, transparent 3.5px) 0 10px / 16px 32px repeat-y;
   }
-}
-@media print {
-  /* `[p]` / `lpr resume`: only the paper, as a plain black-on-white CV */
-  html[data-print-resume] main > :not(#resume),
-  html[data-print-resume] footer { display: none !important; }
-  html[data-print-resume] #resume { height: auto !important; break-inside: auto; }
-  html[data-print-resume] .resume-paper { padding: 0; background: none; box-shadow: none; clip-path: none !important; --ink: #000; --ink-dim: #444; }
-  html[data-print-resume] .resume-paper::before,
-  html[data-print-resume] .resume-paper::after { display: none; }
-  html[data-print-resume] .resume-ink { background: none; text-shadow: none; padding: 0; break-inside: auto; }
-  html[data-print-resume] .resume-ink li { break-inside: avoid; }
-  html[data-print-resume] .resume-ink a::after { content: none; }
+  .resume-head { width: 12px; height: 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

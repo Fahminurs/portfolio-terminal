@@ -7,7 +7,7 @@ import { profile, projects, sections } from "@/content/data";
 import { OPEN_PROJECT_EVENT, scrollToId } from "@/lib/utils";
 import { useShell, type Theme } from "./ShellProvider";
 import { KEYS_EVENT } from "./KeyHelp";
-import { printResume } from "@/components/hero/ResumePanel";
+import { RESUME_FF_EVENT } from "@/components/hero/ResumePanel";
 
 type Line = { kind: "in" | "out" | "err"; text: string };
 
@@ -18,8 +18,8 @@ const HELP = [
   "ls                   daftar section",
   "cd <section|0-7>     lompat ke section",
   "open <project>       buka proyek (eduviana, parkeasy-ai, …)",
-  "less resume.pdf      buka resume",
-  "lpr resume           cetak / simpan PDF versi CV",
+  "less resume.pdf      buka resume langsung",
+  "lpr resume           cetak resume di LPT1 (animasi printer)",
   "plain                mode tenang: tanpa animasi & efek",
   "keys                 bantuan keyboard (atau tekan ?)",
   "whoami               siapa saya",
@@ -44,8 +44,8 @@ export function CommandPalette() {
       { value: "help", hint: "daftar command" },
       ...sections.map((s) => ({ value: `cd ${s.label}`, hint: `${s.n} — ${s.cmd}` })),
       ...projects.map((p) => ({ value: `open ${p.slug}`, hint: p.title })),
-      { value: "less resume.pdf", hint: "resume viewer" },
-      { value: "lpr resume", hint: "print → CV" },
+      { value: "less resume.pdf", hint: "resume, langsung" },
+      { value: "lpr resume", hint: "resume via printer" },
       { value: "plain", hint: "toggle mode tenang" },
       { value: "keys", hint: "bantuan keyboard" },
       { value: "whoami", hint: "" },
@@ -111,13 +111,14 @@ export function CommandPalette() {
         if (arg.startsWith("resume")) {
           setResumeOpen(true);
           close();
+          // a pager shows the whole thing at once: skip the print run
+          window.setTimeout(() => window.dispatchEvent(new Event(RESUME_FF_EVENT)), 60);
         } else print(`${cmd}: ${arg || "(empty)"}: No such file`, "err");
         break;
       case "lpr":
         if (arg.startsWith("resume")) {
           close();
           setResumeOpen(true);
-          window.setTimeout(printResume, 400); // let the paper mount first
         } else print(`lpr: ${arg || "(empty)"}: No such file — try 'lpr resume'`, "err");
         break;
       case "keys":
