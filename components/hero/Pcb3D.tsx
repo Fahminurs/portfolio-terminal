@@ -476,10 +476,13 @@ function Stage({
     };
   }, [gl, scene, camera, touch, invalidate, bind]);
 
-  // re-frame the board when the panel changes shape (phone rotate, sidebar breakpoints)
+  // re-frame the board when the panel changes width (phone rotate, sidebar breakpoints). Not on
+  // `size` itself: R3F measures with scroll tracking, so its top/left — and on phones the height,
+  // as the address bar slides — change on every scroll, which snapped the camera back home.
+  const width = size.width;
   useEffect(() => {
-    if (size.width) api.current?.reset();
-  }, [size]);
+    if (width) api.current?.reset();
+  }, [width]);
 
   // frames are drawn on demand; the pin/LED blink only needs ~12 fps
   useEffect(() => {
