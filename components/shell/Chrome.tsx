@@ -4,6 +4,7 @@ import { profile, sections } from "@/content/data";
 import { cn, scrollToId } from "@/lib/utils";
 import { useShell } from "./ShellProvider";
 import { KEYS_EVENT } from "./KeyHelp";
+import { SocialLink } from "@/components/ui/SocialLink";
 
 export function Titlebar() {
   const { setPaletteOpen } = useShell();
@@ -45,16 +46,7 @@ export function Titlebar() {
       </div>
       <nav aria-label="Social" className="flex items-center gap-1">
         {profile.socials.map((s) => (
-          <a
-            key={s.short}
-            href={s.href}
-            target="_blank"
-            rel="noreferrer"
-            className="border border-line px-2 py-1.5 text-[10px] text-fg-2 sm:py-0.5 transition-colors hover:border-accent hover:text-accent"
-          >
-            <span className="text-fg-3">{s.short}</span>
-            <span className="ml-1.5 hidden sm:inline">{s.label}</span>
-          </a>
+          <SocialLink key={s.short} social={s} compact className="h-7 text-[10px] sm:h-5" />
         ))}
       </nav>
     </div>

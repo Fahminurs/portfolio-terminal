@@ -5,6 +5,7 @@ import { profile, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { useCalm } from "@/lib/calm";
 import { Prompt } from "@/components/ui/Prompt";
+import { SocialLink } from "@/components/ui/SocialLink";
 import { cn } from "@/lib/utils";
 
 const s = sections[7];
@@ -79,15 +80,7 @@ export function Contact() {
           <ul className="flex flex-wrap gap-2 text-[11px]">
             {profile.socials.map((x) => (
               <li key={x.short}>
-                <a
-                  href={x.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="border border-line px-2 py-1 text-fg-2 hover:border-accent hover:text-accent"
-                >
-                  <span className="text-fg-3">{x.short} </span>
-                  {x.label} ↗
-                </a>
+                <SocialLink social={x} suffix=" ↗" className="h-7" />
               </li>
             ))}
           </ul>

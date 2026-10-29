@@ -15,9 +15,10 @@ export const profile = {
     { k: "EXPERIENCE", v: "Project-Based" },
   ],
   socials: [
-    { short: "in", label: "LinkedIn", href: "https://www.linkedin.com/" },
-    { short: "ig", label: "Instagram", href: "https://www.instagram.com/" },
-    { short: "gh", label: "GitHub", href: "https://github.com/Fahminurs" },
+    // ansi: the reverse-video colour of the `in`/`ig`/`gh` segment (ANSI palette in globals.css)
+    { short: "in", label: "LinkedIn", href: "https://www.linkedin.com/", ansi: "blue" },
+    { short: "ig", label: "Instagram", href: "https://www.instagram.com/", ansi: "magenta" },
+    { short: "gh", label: "GitHub", href: "https://github.com/Fahminurs", ansi: "cyan" },
   ],
   github: "https://github.com/Fahminurs",
 };
