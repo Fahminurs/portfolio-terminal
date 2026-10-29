@@ -3,6 +3,7 @@ import { SectionHead } from "@/components/ui/SectionHead";
 import { Count } from "@/components/ui/Count";
 import { NoSignal } from "@/components/ui/NoSignal";
 import { DitherReveal } from "@/components/fx/DitherReveal";
+import { LoopVideo } from "@/components/fx/LoopVideo";
 import { CastPlayer } from "@/components/media/CastPlayer";
 import { CodeExcerpt } from "@/components/media/CodeExcerpt";
 import { UartWaveform } from "@/components/media/UartWaveform";
@@ -18,14 +19,24 @@ function Media({ p }: { p: Project }) {
     const { slug, title, category, period, summary, stack, repo, gallery } = p;
     return (
       <ManTrigger man={{ slug, title, category, period, summary, stack, repo, gallery }}>
-        <DitherReveal
-          src={p.media.src}
-          dither={p.media.dither}
-          alt={p.title}
-          label={p.media.label}
-          focusable={false}
-          className="aspect-video md:aspect-[4/3]"
-        />
+        {p.media.teaser ? (
+          <LoopVideo
+            src={p.media.teaser.src}
+            poster={p.media.src}
+            label={p.media.label}
+            cta={p.media.teaser.cta}
+            className="aspect-video md:aspect-[4/3]"
+          />
+        ) : (
+          <DitherReveal
+            src={p.media.src}
+            dither={p.media.dither}
+            alt={p.title}
+            label={p.media.label}
+            focusable={false}
+            className="aspect-video md:aspect-[4/3]"
+          />
+        )}
       </ManTrigger>
     );
   }
@@ -55,10 +66,24 @@ function Block({ cmd, children }: { cmd: string; children: React.ReactNode }) {
 
 /** Expand order is fixed by PRD §5.4: recording → waveform → code. */
 function Details({ p }: { p: Project }) {
-  const hasCast = PARKEASY.has(p.slug);
-  if (!hasCast && !p.uart && !p.code) return null;
+  // no serial recording without the board → the thesis demo video is the recording
+  const demo = !p.cast ? p.gallery?.find((f) => f.video) : undefined;
+  const hasCast = PARKEASY.has(p.slug) && !demo;
+  if (!hasCast && !demo && !p.uart && !p.code) return null;
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+      {demo && (
+        <Block cmd={`mpv ${demo.video?.split("/").pop()}`}>
+          <video
+            src={demo.video}
+            poster={demo.src}
+            controls
+            playsInline
+            preload="none"
+            className="aspect-video w-full border border-line-2 bg-bg"
+          />
+        </Block>
+      )}
       {hasCast && (
         <Block cmd={p.slug === "parkeasy-alat" ? "idf.py monitor" : "python gate_server.py"}>
           <CastPlayer src={p.cast} label={`${p.slug}.cast`} on="surface" />

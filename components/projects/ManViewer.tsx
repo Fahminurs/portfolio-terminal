@@ -282,6 +282,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
                 poster={fig.src}
                 controls
                 playsInline
+                autoPlay={!calm}
                 preload="metadata"
                 className="man-video absolute inset-0 size-full object-contain p-3.5"
                 onPointerDown={(e) => e.stopPropagation()}
@@ -451,7 +452,7 @@ export function ManTrigger({ man, children }: { man: Man; children: React.ReactN
         {children}
         <span
           aria-hidden
-          className="pointer-events-none absolute bottom-2 right-2 border border-line-2 bg-bg px-1.5 py-px text-[10px] text-fg-3 transition-colors group-hover:border-accent group-hover:text-accent group-focus-visible:border-accent group-focus-visible:text-accent"
+          className="pointer-events-none absolute bottom-2 right-2 z-10 border border-line-2 bg-bg px-1.5 py-px text-[10px] text-fg-3 transition-colors group-hover:border-accent group-hover:text-accent group-focus-visible:border-accent group-focus-visible:text-accent"
         >
           man {man.slug} · {String(n).padStart(2, "0")} fig ↵
         </span>

@@ -93,7 +93,8 @@ export type Project = {
   summary: string;
   stack: string[];
   /** src/dither absent → [ no signal ] */
-  media: { kind: "image" | "video"; label: string; src?: string; dither?: string };
+  /** `teaser`: silent loop played on the card instead of the dither image */
+  media: { kind: "image" | "video"; label: string; src?: string; dither?: string; teaser?: { src: string; cta: string } };
   /** click the media → `man <slug>` viewer; `thumb` is a 240px 1-bit mask like `dither` */
   gallery?: Figure[];
   repo?: string;
@@ -117,7 +118,25 @@ export const projects: Project[] = [
     summary:
       "Platform SaaS pembelajaran — ujian lisan berbasis Gemini Live API, mind map, quiz, flashcard, rangkuman otomatis, upload dokumen, dan glosarium. Masih dalam tahap pengembangan aktif menuju deployment self-hosted di VPS.",
     stack: ["Next.js", "FastAPI", "PostgreSQL", "Gemini API"],
-    media: { kind: "image", label: "foto.jpg" },
+    media: {
+      kind: "image",
+      label: "mindmap.png",
+      src: "/media/eduviana-mindmap.jpg",
+      dither: "/media/dither/eduviana-mindmap.png",
+    },
+    gallery: figs("eduviana", [
+      ["01.webp", "Beranda: hitung mundur ke hari sidang dan progres bab yang sudah dikuasai"],
+      ["02.webp", "Mind map per bab: pohon topik yang bisa dibuka-tutup, cari, dan zoom"],
+      ["03.webp", "Quiz pilihan ganda dengan stepper soal"],
+      ["04.webp", "Hasil quiz: skor, pembahasan, kutipan dari dokumen, dan verifikasi AI"],
+      ["05.webp", "Flashcard mode belajar, dengan penghitung kartu yang sudah dikuasai"],
+      ["06.webp", "Glosarium istilah per bab, lengkap dengan definisi dan catatan"],
+      ["07.webp", "Rangkuman otomatis: ringkasan, poin kunci, dan bagian per subbab"],
+      ["08.webp", "Ujian lisan (Gemini Live): siap memulai sesi, plus evaluasi sesi sebelumnya"],
+      ["09.webp", "Upload dokumen skripsi (.docx / .pdf)"],
+      ["10.webp", "Tampilan mobile: beranda"],
+      ["11.webp", "Tampilan mobile: flashcard"],
+    ]),
     repo: "https://github.com/Fahminurs/Eduviana/tree/master",
   },
   {
@@ -149,6 +168,8 @@ export const projects: Project[] = [
       ["11.webp", "WebSocket /ws: frame log, jarak HC-SR04, dan status slot & servo ke dashboard"],
     ]),
     repo: "https://github.com/Fahminurs/ParkEasy_AI",
+    // recorded in a sandbox: cameras = synthetic video, ESP32 = pty, YOLO/OCR stubbed (see the repo's portfolio-cast/README.md)
+    cast: "/casts/parkeasy-ai.cast",
     code: {
       repo: "ParkEasy_AI",
       sha: "291a546",
@@ -180,6 +201,7 @@ export const projects: Project[] = [
       label: "DEMO SKRIPSI.mp4",
       src: "/media/parkeasy-alat-lcd.jpg",
       dither: "/media/dither/parkeasy-alat-lcd.png",
+      teaser: { src: "/media/parkeasy-alat-teaser.mp4", cta: "putar demo 4:15" },
     },
     gallery: figs("parkeasy-alat", [
       ["/media/parkeasy-alat-demo.jpg", "Video demo sidang skripsi: alur parkir masuk, monitoring petak, sampai keluar & bayar (4:15)", "/media/parkeasy-alat-demo.mp4"],
@@ -229,11 +251,20 @@ export const projects: Project[] = [
     stack: ["ESP32", "Arduino", "HTTPClient"],
     media: {
       kind: "image",
-      label: "pcb-assembled.jpg",
-      src: "/media/chillstation-pcb.jpg",
-      dither: "/media/dither/chillstation-pcb.png",
+      label: "demo-billing.mp4",
+      src: "/media/chillstation-timer.jpg",
+      dither: "/media/dither/chillstation-timer.png",
+      teaser: { src: "/media/chillstation-teaser.mp4", cta: "putar demo 0:49" },
     },
-    gallery: figs("chillstation", [["/media/chillstation-pcb.jpg", "PCB Chillstation Billing yang sudah dirakit"]]),
+    gallery: figs("chillstation", [
+      ["/media/chillstation-demo.jpg", "Demo: kode & durasi diinput lewat keypad, timer menghitung mundur di panel P10 sampai WAKTU HABIS", "/media/chillstation-demo.mp4"],
+      ["02.webp", "Panel P10 menampilkan WAKTU HABIS saat sewa selesai"],
+      ["/media/chillstation-pcb.jpg", "PCB custom ESP32 (WROOM-32UE) yang sudah dirakit: regulator, header keypad, LCD, DFPlayer"],
+      ["04.webp", "Layout PCB: ESP32 DevKitC, relay, keypad, DFPlayer, PAM8403"],
+      ["05.webp", "Dimensi PCB 86,2 × 64,9 mm"],
+      ["06.webp", "Panel LED P10 menyala, dengan wiring di belakangnya"],
+      ["07.webp", "Bagian dalam casing: wiring panel, ESP32, dan speaker"],
+    ]),
     repo: "https://github.com/Fahminurs/Chillstation-Billing-PS",
   },
   {
@@ -245,7 +276,16 @@ export const projects: Project[] = [
     summary:
       "Aplikasi mobile deteksi kondisi kulit berbasis YOLOv8 dan conversational AI (RAG). Dikembangkan untuk kompetisi AI-NOVAC — meraih Juara 3.",
     stack: ["Flutter", "YOLOv8", "RAG / AI"],
-    media: { kind: "image", label: "screenshot.png" },
+    media: {
+      kind: "image",
+      label: "ai-novac-2024.jpg",
+      src: "/media/skinsense-ainovac.jpg",
+      dither: "/media/dither/skinsense-ainovac.png",
+    },
+    gallery: figs("skinsenseai", [
+      ["01.webp", "Final AI-NOVAC 2024 (online): tim dari UPI Kampus Cibiru, tiga jari untuk Juara 3. Layar Zoom diburamkan."],
+      ["02.webp", "Sertifikat Juara 3 kategori Kesehatan dan Makhluk Hidup, AI-NOVAC 2024 (ITERA × Bisa AI)"],
+    ]),
   },
   {
     slug: "eunoia",
@@ -256,7 +296,28 @@ export const projects: Project[] = [
     summary:
       "Web app kesehatan mental dengan arsitektur dual LSTM untuk analisis mood berbasis diary, serta deteksi risiko bunuh diri berbasis forum. Kompetisi ITConvert, Universitas Jember — meraih Juara 2 kategori Software Development.",
     stack: ["Laravel", "PHP", "LSTM / AI"],
-    media: { kind: "image", label: "screenshot.png" },
+    media: {
+      kind: "image",
+      label: "eunoia-pwa.png",
+      src: "/media/eunoia-app.jpg",
+      dither: "/media/dither/eunoia-app.png",
+    },
+    gallery: figs("eunoia", [
+      ["01.webp", "Eunoia: beranda, daftar diary dengan mood, dan chatbot AI"],
+      ["02.webp", "Login"],
+      ["03.webp", "Beranda: bar kondisi mental (depresi, anxiety, stres) dan mood"],
+      ["04.webp", "Daftar diary dengan mood per entri"],
+      ["05.webp", "Menulis diary"],
+      ["06.webp", "Chatbot AI (konten contoh, bukan keluaran model langsung)"],
+      ["07.webp", "Latihan pernapasan"],
+      ["08.webp", "Relaxing sound: suara alam, ASMR, dan lainnya"],
+      ["09.webp", "Explore & Care: forum diskusi, chatbot, konsultasi, artikel"],
+      ["10.webp", "Artikel edukasi kesehatan mental"],
+      ["11.webp", "Tim Eunoia dengan piala Juara 2 IT Convert 2024"],
+      ["12.webp", "Penyerahan piala Juara 2 Bidang Software Development"],
+      ["13.webp", "Sertifikat Juara 2 Bidang Software Development, IT Convert 2024, Universitas Jember"],
+    ]),
+    repo: "https://github.com/Fahminurs/Eunoia-PWA",
   },
   {
     slug: "acnesense",
@@ -266,7 +327,21 @@ export const projects: Project[] = [
     summary:
       "Proyek akhir DBS Coding Camp 2025 — Progressive Web App deteksi & klasifikasi jerawat berbasis AI untuk skrining dini. Full-stack — Express.js, EJS, Vite, Tailwind CSS, Supabase. Termasuk fitur riwayat diagnosis dan chatbot edukatif, di-deploy via Docker ke Google Cloud Run.",
     stack: ["Node.js", "Express.js", "Supabase", "Docker"],
-    media: { kind: "video", label: "video_demo.mp4" },
+    media: {
+      kind: "image",
+      label: "acnesense-pwa.png",
+      src: "/media/acnesense-app.jpg",
+      dither: "/media/dither/acnesense-app.png",
+    },
+    gallery: figs("acnesense", [
+      ["01.webp", "PWA AcneSense: dashboard, hasil deteksi, dan chatbot edukatif"],
+      ["02.webp", "Login"],
+      ["03.webp", "Registrasi akun"],
+      ["04.webp", "Dashboard dengan informasi profil (akun demo)"],
+      ["05.webp", "Riwayat diagnosis (data demo)"],
+      ["06.webp", "Hasil: foto asli dan carousel klasifikasi jerawat (data demo)"],
+      ["07.webp", "Chatbot edukatif, siap menerima pertanyaan"],
+    ]),
   },
   {
     slug: "helios",

@@ -16,7 +16,8 @@ type Props = {
 };
 
 /** asciinema recording, loaded only when scrolled near. Missing cast → [ no signal ]. */
-export function CastPlayer({ src, label, cols = 100, rows = 22, on }: Props) {
+/** cols/rows default to the recording's own header size */
+export function CastPlayer({ src, label, cols, rows, on }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const calm = useCalm();
 
