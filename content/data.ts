@@ -16,7 +16,7 @@ export const profile = {
   ],
   socials: [
     // ansi: the reverse-video colour of the `in`/`ig`/`gh` segment (ANSI palette in globals.css)
-    { short: "in", label: "LinkedIn", href: "https://www.linkedin.com/", ansi: "blue" },
+    { short: "in", label: "LinkedIn", href: "https://www.linkedin.com/in/fahmi-nursafaat", ansi: "blue" },
     { short: "ig", label: "Instagram", href: "https://www.instagram.com/", ansi: "magenta" },
     { short: "gh", label: "GitHub", href: "https://github.com/Fahminurs", ansi: "cyan" },
   ],
@@ -505,6 +505,82 @@ export const achievements = [
     year: "2025",
   },
 ];
+
+/**
+ * Printed by `lpr resume` (ResumePanel). Sourced from the ATS CV (Aug 2025) plus what this site
+ * knows that the CV predates (Irostech internship, ParkEasy, Eduviana). No phone number on the web.
+ */
+export const resume = {
+  name: "Fahmi Nursafaat",
+  role: "Computer Engineer — Software & Embedded",
+  contact: [
+    { k: "lokasi", v: "Kab. Bandung, Jawa Barat" },
+    { k: "email", v: "fahminursafaat@gmail.com", href: "mailto:fahminursafaat@gmail.com" },
+    { k: "linkedin", v: "linkedin.com/in/fahmi-nursafaat", href: "https://www.linkedin.com/in/fahmi-nursafaat" },
+    { k: "github", v: "github.com/Fahminurs", href: "https://github.com/Fahminurs" },
+  ],
+  summary:
+    "Lulusan Teknik Komputer Universitas Pendidikan Indonesia yang membangun software dan sistem embedded — dari web app full-stack dan aplikasi mobile sampai firmware ESP32 dan computer vision. Aktif di kompetisi teknologi (GEMASTIK, LIDM, CTF, Software Development, AI) dengan dua gelar juara nasional.",
+  education: [
+    {
+      when: "Sep 2022 — 2026",
+      what: "S1 Teknik Komputer · IPK 3,83 / 4,00",
+      where: "Universitas Pendidikan Indonesia — Kampus Cibiru, Bandung",
+      note: "Fokus embedded systems, computer vision, dan software engineering. Skripsi: ParkEasy (sistem parkir cerdas ANPR + ESP32).",
+    },
+    { when: "2019 — 2022", what: "SMA · Jurusan IPS", where: "MAN 1 Tegal" },
+  ],
+  experience: [
+    {
+      when: "2025",
+      what: "Software Engineer Intern",
+      where: "PT. Irostech",
+      note: "Magang semester 7 — terlibat dalam pengembangan software sesuai kebutuhan perusahaan.",
+    },
+    {
+      when: "2025",
+      what: "Studi Independen — DBS Coding Camp 2025",
+      where: "Kampus Merdeka",
+      note: "Proyek akhir: AcneSense (PWA deteksi jerawat berbasis AI).",
+    },
+    {
+      when: "Jun 2024",
+      what: "Staff Design & Decoration",
+      where: "Dies Natalis Teknik Komputer UPI",
+      note: "Konsep visual acara, pemilihan warna, dan penataan ruang bersama tim lintas divisi.",
+    },
+  ],
+  projects: [
+    { when: "2025", name: "ParkEasy (skripsi)", stack: "Python · YOLOv8 · PaddleOCR · FastAPI · ESP32", note: "Gate server ANPR yang membaca plat, memvalidasi ke Supabase, dan memerintah palang ESP32 lewat UART; firmware ESP32 untuk servo, HC-SR04, VL53L1X, dan LCD." },
+    { when: "2025 — kini", name: "Eduviana", stack: "Next.js · FastAPI · PostgreSQL · Gemini API", note: "Platform belajar SaaS: ujian lisan Gemini Live, mind map, quiz, flashcard, rangkuman otomatis." },
+    { when: "Mei — Jun 2025", name: "AcneSense", stack: "Express · EJS · Tailwind · Supabase · Docker", note: "Front-end & back-end PWA deteksi jerawat; riwayat diagnosis dan chatbot; deploy ke Google Cloud Run." },
+    { when: "Jun — Jul 2025", name: "Syncronus Chat Realtime", stack: "React · Express · MongoDB", note: "Aplikasi chat real-time full-stack." },
+    { when: "Nov — Des 2024", name: "Helios Tracker", stack: "Laravel · Flutter · IoT API", note: "Monitoring solar tracker dual-axis: web real-time dan aplikasi mobile." },
+    { when: "Sep — Okt 2024", name: "SkinSenseAI", stack: "Flutter · YOLOv8 · RAG", note: "Back-end & front-end Flutter. Juara 3 AI-NOVAC 2024." },
+    { when: "Agu — Sep 2024", name: "Eunoia", stack: "Laravel · PHP · LSTM", note: "Back-end & front-end Laravel; analisis mood dual LSTM. Juara 2 IT Convert 2024." },
+    { when: "2024", name: "Chillstation Billing PS", stack: "ESP32 · Arduino · P10 LED", note: "Billing rental PlayStation: timer di panel P10, keypad, DFPlayer, relay pemutus daya." },
+  ],
+  more: "ImagePicker (steganografi, Flask) · Moju (mood journal, PHP) · Nusantara Zoo (AR, Laravel) · Maxview (Java Swing)",
+  awards: [
+    { when: "2024", what: "Juara 2 — IT Convert, National Software Development Competition", where: "Universitas Jember" },
+    { when: "2024", what: "Juara 3 — AI-NOVAC, National AI Innovation Competition", where: "Institut Teknologi Sumatera" },
+    { when: "2025", what: "Academic & Non-Academic Excellence", where: "Universitas Pendidikan Indonesia" },
+  ],
+  certs: [
+    { org: "Alibaba Cloud", what: "Certified Developer Generative AI · ACA Cloud Computing · Certified Developer – 1" },
+    { org: "Dicoding", what: "10 kelas: Cloud & Gen AI di AWS, Back-End JavaScript, Git & GitHub, Front-End Web, Web Intermediate, Logika Pemrograman" },
+    { org: "BuildWithAngga", what: "Progressive Web Apps (PWA)" },
+    { org: "Kompetegram", what: "Node.js Bootcamp" },
+    { org: "Codepolitan", what: "HTML, CSS, Bootstrap" },
+  ],
+  skills: [
+    { k: "bahasa", v: "C / C++ · JavaScript · PHP · Java · Python · Dart" },
+    { k: "framework", v: "Node.js · Express · Laravel · React · Next.js · Flutter · FastAPI" },
+    { k: "data", v: "MySQL · PostgreSQL · MongoDB · Supabase · Firebase" },
+    { k: "hardware", v: "ESP32 · Arduino · sensor (HC-SR04, VL53L1X) · UART / I2C" },
+    { k: "minat", v: "Embedded & IoT · Computer Vision · Cyber Security · Web & Mobile" },
+  ],
+};
 
 export const sections = [
   { id: "index", n: 0, label: "index", cmd: "whoami" },

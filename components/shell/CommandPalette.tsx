@@ -7,6 +7,7 @@ import { profile, projects, sections } from "@/content/data";
 import { OPEN_PROJECT_EVENT, scrollToId } from "@/lib/utils";
 import { useShell, type Theme } from "./ShellProvider";
 import { KEYS_EVENT } from "./KeyHelp";
+import { printResume } from "@/components/hero/ResumePanel";
 
 type Line = { kind: "in" | "out" | "err"; text: string };
 
@@ -115,7 +116,8 @@ export function CommandPalette() {
       case "lpr":
         if (arg.startsWith("resume")) {
           close();
-          window.setTimeout(() => window.print(), 150);
+          setResumeOpen(true);
+          window.setTimeout(printResume, 400); // let the paper mount first
         } else print(`lpr: ${arg || "(empty)"}: No such file — try 'lpr resume'`, "err");
         break;
       case "keys":
