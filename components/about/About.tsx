@@ -1,6 +1,6 @@
 import { about, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
-import { DitherReveal } from "@/components/fx/DitherReveal";
+import Image from "next/image";
 import { StackTree } from "./StackTree";
 import { Prompt } from "@/components/ui/Prompt";
 
@@ -13,8 +13,16 @@ export function About() {
       <div data-reveal className="mt-8 grid border-t border-line md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,2.25fr)_minmax(0,1.55fr)]">
         <div className="border-line p-4 md:border-r md:p-8">
           <div className="mx-auto max-w-[240px] md:sticky md:top-14 md:max-w-none">
-            <DitherReveal alt="Foto Fahmi Nursafaat" label="portrait.dither.png" className="aspect-[4/5]" />
-            <p className="mt-2 text-[10px] text-fg-3">FIG.01 — portrait.dither.png</p>
+            <div className="relative aspect-[4/5] overflow-hidden border border-line bg-bg">
+              <Image
+                src="/media/portrait.jpg"
+                alt="Fahmi Nursafaat saat yudisium, memakai jas dan selempang nama"
+                fill
+                sizes="(min-width: 850px) 340px, 240px"
+                className="object-cover"
+              />
+            </div>
+            <p className="mt-2 text-[10px] text-fg-3">FIG.01 — portrait.jpg</p>
           </div>
         </div>
 

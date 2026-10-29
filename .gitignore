@@ -22,6 +22,8 @@
 
 # misc
 .DS_Store
+# photo edit drafts (originals are personal photos — only the picked one goes to public/media)
+/_drafts/
 *.pem
 
 # debug
