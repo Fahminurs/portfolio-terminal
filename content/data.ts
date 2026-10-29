@@ -316,6 +316,7 @@ export const projects: Project[] = [
       ["11.webp", "Artikel edukasi kesehatan mental"],
       ["12.webp", "Tim Eunoia dengan piala Juara 2 IT Convert 2024"],
       ["13.webp", "Penyerahan piala Juara 2 Bidang Software Development"],
+      ["14.webp", "Bersama piala Juara 2 IT Convert 2024"],
     ]),
     repo: "https://github.com/Fahminurs/Eunoia-PWA",
   },
