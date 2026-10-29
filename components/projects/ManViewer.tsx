@@ -155,6 +155,59 @@ function createProjector(canvas: HTMLCanvasElement, stage: HTMLElement, srcs: st
 
 type Projector = ReturnType<typeof createProjector>;
 
+/**
+ * Stage edge = the neighbouring figure peeking in. At rest a thin 1-bit amber sliver of its
+ * leading edge; on hover/focus the rail opens in hard steps to show more of it plus the key
+ * and number. Clicking sends the scan in from this side.
+ */
+function Peek({ side, k, fig, onGo }: { side: "prev" | "next"; k: number; fig: Figure; onGo: () => void }) {
+  const next = side === "next";
+  const num = String(k + 1).padStart(2, "0");
+  const mask = {
+    maskImage: `url(${fig.thumb})`,
+    WebkitMaskImage: `url(${fig.thumb})`,
+    maskSize: "auto 100%",
+    WebkitMaskSize: "auto 100%",
+    maskRepeat: "no-repeat",
+    WebkitMaskRepeat: "no-repeat",
+    // next shows its left edge coming in, prev its right edge leaving
+    maskPosition: next ? "left center" : "right center",
+    WebkitMaskPosition: next ? "left center" : "right center",
+  };
+  return (
+    <button
+      onClick={onGo}
+      onPointerDown={(e) => e.stopPropagation()}
+      onPointerUp={(e) => e.stopPropagation()}
+      aria-label={`${next ? "Berikutnya" : "Sebelumnya"}: gambar ${k + 1}, ${fig.caption}`}
+      title={fig.caption}
+      className={cn(
+        "group/peek absolute inset-y-[18%] z-10 flex items-center",
+        next ? "right-0 flex-row-reverse" : "left-0",
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "peek-rail relative h-full w-3.5 overflow-hidden border-line-2 bg-bg transition-[width] duration-200 ease-[steps(6,end)] group-hover/peek:w-28 group-focus-visible/peek:w-28",
+          next ? "border-l" : "border-r",
+        )}
+      >
+        <span className="absolute inset-y-1 inset-x-0 bg-accent" style={mask} />
+      </span>
+      <span
+        aria-hidden
+        className={cn(
+          "peek-label flex flex-col items-center gap-1 border border-line-2 bg-bg px-0.5 py-1.5 text-[10px] leading-none text-fg-3 transition-colors [writing-mode:vertical-rl] group-hover/peek:border-accent group-hover/peek:text-accent group-focus-visible/peek:border-accent group-focus-visible/peek:text-accent",
+          !next && "rotate-180",
+        )}
+      >
+        {next ? `l ▸ ${num}` : `h ◂ ${num}`}
+      </span>
+    </button>
+  );
+}
+
 const LINE_PX = 20; // man pane line-height, for the `less` line counter
 
 function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: () => void }) {
@@ -295,6 +348,12 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
             <span className="absolute right-3 top-3 text-[10px] tabular-nums text-fg-3">
               {num(i)}/{num(n - 1)}
             </span>
+            {n > 1 && (
+              <>
+                <Peek side="prev" k={(i - 1 + n) % n} fig={figs[(i - 1 + n) % n]} onGo={() => go(-1)} />
+                <Peek side="next" k={(i + 1) % n} fig={figs[(i + 1) % n]} onGo={() => go(1)} />
+              </>
+            )}
           </div>
           <div className="flex items-start gap-3 border-t border-line px-3 py-2.5 text-[11px]">
             <p className="min-w-0 flex-1 leading-[1.55]" aria-live="polite">
