@@ -207,7 +207,8 @@ dialog.man::backdrop { background: color-mix(in oklab, var(--color-bg) 84%, tran
   0%, 60%, 100% { transform: translateY(0); }
   80% { transform: translateY(3px); }
 }
-@media (max-width: 767.98px) {
+/* same range as the handle (hidden from lg up) */
+@media (max-width: 1023.98px) {
   :root:not([data-plain]) dialog.man[open] .man-frame.man-demo {
     animation: man-in 320ms steps(10, end) both, man-nudge 1.3s cubic-bezier(0.3, 0.7, 0.3, 1) 0.9s 2;
   }
