@@ -78,10 +78,14 @@ export type CodeExcerpt = {
 /** `src` is always a still (for a video figure: its poster) so the projector can draw it */
 export type Figure = { src: string; thumb: string; caption: string; video?: string };
 
+// A gallery file's thumb sits next to it (`x.webp` → `x.png`). Name files by content, not just
+// position: browsers and the image optimizer cache by URL, so reusing `02.webp` for a new picture shows the old one.
 const figs = (slug: string, items: [file: string, caption: string, video?: string][]): Figure[] =>
   items.map(([file, caption, video], i) => {
-    const n = String(i + 1).padStart(2, "0");
-    return { src: file.startsWith("/") ? file : `/media/gallery/${slug}/${file}`, thumb: `/media/gallery/${slug}/${n}.png`, caption, video };
+    const dir = `/media/gallery/${slug}`;
+    const own = !file.startsWith("/");
+    const thumb = own ? `${dir}/${file.replace(/\.\w+$/, ".png")}` : `${dir}/${String(i + 1).padStart(2, "0")}.png`;
+    return { src: own ? `${dir}/${file}` : file, thumb, caption, video };
   });
 
 export type Project = {
@@ -303,20 +307,20 @@ export const projects: Project[] = [
       dither: "/media/dither/eunoia-app.png",
     },
     gallery: figs("eunoia", [
-      ["01.webp", "Eunoia: beranda, daftar diary dengan mood, dan chatbot AI"],
-      ["02.webp", "Sertifikat Juara 2 Bidang Software Development, IT Convert 2024, Universitas Jember"],
-      ["03.webp", "Login"],
-      ["04.webp", "Beranda: bar kondisi mental (depresi, anxiety, stres) dan mood"],
-      ["05.webp", "Daftar diary dengan mood per entri"],
-      ["06.webp", "Menulis diary"],
-      ["07.webp", "Chatbot AI (konten contoh, bukan keluaran model langsung)"],
-      ["08.webp", "Latihan pernapasan"],
-      ["09.webp", "Relaxing sound: suara alam, ASMR, dan lainnya"],
-      ["10.webp", "Explore & Care: forum diskusi, chatbot, konsultasi, artikel"],
-      ["11.webp", "Artikel edukasi kesehatan mental"],
-      ["12.webp", "Tim Eunoia dengan piala Juara 2 IT Convert 2024"],
-      ["13.webp", "Penyerahan piala Juara 2 Bidang Software Development"],
-      ["14.webp", "Bersama piala Juara 2 IT Convert 2024"],
+      ["01-app.webp", "Eunoia: beranda, daftar diary dengan mood, dan chatbot AI"],
+      ["02-sertifikat.webp", "Sertifikat Juara 2 Bidang Software Development, IT Convert 2024, Universitas Jember"],
+      ["03-login.webp", "Login"],
+      ["04-beranda.webp", "Beranda: bar kondisi mental (depresi, anxiety, stres) dan mood"],
+      ["05-diary.webp", "Daftar diary dengan mood per entri"],
+      ["06-tulis-diary.webp", "Menulis diary"],
+      ["07-chatbot.webp", "Chatbot AI (konten contoh, bukan keluaran model langsung)"],
+      ["08-napas.webp", "Latihan pernapasan"],
+      ["09-relaxing-sound.webp", "Relaxing sound: suara alam, ASMR, dan lainnya"],
+      ["10-explore-care.webp", "Explore & Care: forum diskusi, chatbot, konsultasi, artikel"],
+      ["11-artikel.webp", "Artikel edukasi kesehatan mental"],
+      ["12-tim-piala.webp", "Tim Eunoia dengan piala Juara 2 IT Convert 2024"],
+      ["13-penyerahan-piala.webp", "Penyerahan piala Juara 2 Bidang Software Development"],
+      ["14-bersama-piala.webp", "Bersama piala Juara 2 IT Convert 2024"],
     ]),
     repo: "https://github.com/Fahminurs/Eunoia-PWA",
   },
