@@ -334,7 +334,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
     >
       <div
         className={cn(
-          "man-frame tui-shadow relative flex h-full flex-col border-[3px] border-double border-line-2 bg-surface md:grid md:grid-cols-[minmax(0,1.75fr)_minmax(300px,1fr)] md:grid-rows-[auto_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]",
+          "man-frame tui-shadow relative flex h-full flex-col border-[3px] border-double border-line-2 bg-surface md:grid md:grid-cols-[minmax(0,1.75fr)_minmax(300px,1fr)] md:grid-rows-[auto_minmax(0,1fr)]",
           demo && "man-demo",
         )}
         style={
@@ -353,9 +353,9 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
           </button>
         </span>
 
-        {/* phone + tablet: pull the handle down and it types vim's quit, `:` → `:q` → `:q ⏎`; let go on ⏎ to leave */}
+        {/* pull the handle down (finger or mouse) and it types vim's quit, `:` → `:q` → `:q ⏎`; let go on ⏎ to leave */}
         <div
-          className="relative flex shrink-0 touch-none select-none justify-center border-b border-line pb-2 pt-3 md:col-span-2 lg:hidden"
+          className="relative flex shrink-0 cursor-grab touch-none select-none justify-center border-b border-line pb-2 pt-3 active:cursor-grabbing md:col-span-2"
           onPointerDown={(e) => {
             setDemo(false);
             pullFrom.current = e.clientY;
