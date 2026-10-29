@@ -29,7 +29,7 @@ export type Mode = "opengl" | "raytrace";
 type Hover = { side: "L" | "R"; i: number } | null;
 
 const MAX_SAMPLES = 360;
-const PIN_TIP_Y = 0.78;
+const PIN_TIP_Y = 0.08; // pick on the top stub: the legs under the board are hidden from above
 
 /* ─────────────────────────────── parts ── */
 
@@ -58,8 +58,9 @@ function PinPost({ pin, x, z, active, animate }: { pin: Pin; x: number; z: numbe
   });
 
   return (
-    <mesh position={[x, active ? 0.5 : 0.42, z]}>
-      <boxGeometry args={[0.064, 0.72, 0.064]} />
+    // through-hole: short stub above the board, long leg below the header (breadboard side)
+    <mesh position={[x, active ? -0.56 : -0.48, z]}>
+      <boxGeometry args={[0.064, 1.16, 0.064]} />
       <meshStandardMaterial
         ref={mat}
         color={active ? glow : "#d6ad4f"}
@@ -77,15 +78,22 @@ function Header({ side, pins, hover, animate }: { side: "L" | "R"; pins: Pin[]; 
   const mid = pinZ((pins.length - 1) / 2);
   return (
     <group>
-      {/* plastic body, with a notch per pin */}
-      <mesh position={[x, 0.125, mid]}>
+      {/* plastic body under the board (male pins point down, like the real DevKit), notch per pin */}
+      <mesh position={[x, -0.285, mid]}>
         <boxGeometry args={[0.25, 0.25, (pins.length - 1) * PITCH + 0.25]} />
         <meshStandardMaterial color="#141414" roughness={0.55} />
       </mesh>
       {pins.map((_, i) => (
-        <mesh key={i} position={[x, 0.252, pinZ(i) + PITCH / 2]}>
+        <mesh key={i} position={[x, -0.412, pinZ(i) + PITCH / 2]}>
           <boxGeometry args={[0.25, 0.006, 0.012]} />
           <meshStandardMaterial color="#050505" roughness={0.8} />
+        </mesh>
+      ))}
+      {/* solder fillets on the top pads */}
+      {pins.map((_, i) => (
+        <mesh key={`s${i}`} position={[x, 0.03, pinZ(i)]}>
+          <coneGeometry args={[0.07, 0.06, 12]} />
+          <meshStandardMaterial color="#c9ccd0" metalness={1} roughness={0.25} />
         </mesh>
       ))}
       {pins.map((p, i) => (
@@ -278,7 +286,7 @@ function createStage(
   scene.environmentIntensity = 0.95;
 
   const controls = new OrbitControls(camera, gl.domElement);
-  controls.target.set(0, 0.1, 0.1);
+  controls.target.set(0, -0.2, 0.1);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.enableZoom = false;
