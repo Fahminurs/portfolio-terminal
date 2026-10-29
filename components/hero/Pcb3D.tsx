@@ -301,16 +301,40 @@ function createDrift(camera: PerspectiveCamera, controls: OrbitControls) {
   let t = 0;
   let live = false;
   let held = false;
+  let moved = false;
   let resumeAt = 0;
 
+  // A touch that turns into a page scroll also fires start/end — only a real drag (the pointer
+  // actually travelled) or a ctrl-wheel zoom earns the RESUME_MS pause; anything else lets the
+  // drift carry straight on. (The controls' own "change" can't tell: the drift fires it too.)
+  const el = controls.domElement as HTMLElement;
+  let sx = 0;
+  let sy = 0;
+  const grab = () => {
+    moved = true;
+    live = false;
+  };
+  const down = (e: PointerEvent) => {
+    sx = e.clientX;
+    sy = e.clientY;
+  };
+  const drag = (e: PointerEvent) => {
+    if (held && !moved && Math.hypot(e.clientX - sx, e.clientY - sy) > 6) grab();
+  };
+  const zoomWheel = (e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) grab();
+  };
   const hold = () => {
     held = true;
-    live = false;
+    moved = false;
   };
   const release = () => {
     held = false;
-    resumeAt = performance.now() + RESUME_MS;
+    if (moved) resumeAt = performance.now() + RESUME_MS;
   };
+  el.addEventListener("pointerdown", down);
+  el.addEventListener("pointermove", drag);
+  el.addEventListener("wheel", zoomWheel, { passive: true });
   controls.addEventListener("start", hold);
   controls.addEventListener("end", release);
 
@@ -321,7 +345,7 @@ function createDrift(camera: PerspectiveCamera, controls: OrbitControls) {
     },
     /** advance one frame; true when it moved the camera */
     step(dt: number, paused: boolean) {
-      if (paused || held || performance.now() < resumeAt) {
+      if (paused || (held && moved) || performance.now() < resumeAt) {
         live = false;
         return false;
       }
@@ -342,6 +366,9 @@ function createDrift(camera: PerspectiveCamera, controls: OrbitControls) {
       return true;
     },
     dispose() {
+      el.removeEventListener("pointerdown", down);
+      el.removeEventListener("pointermove", drag);
+      el.removeEventListener("wheel", zoomWheel);
       controls.removeEventListener("start", hold);
       controls.removeEventListener("end", release);
     },
@@ -372,6 +399,12 @@ function createStage(gl: WebGLRenderer, scene: Scene, camera: PerspectiveCamera,
   // phones: horizontal drag turns, vertical drag still scrolls the page, pinch zooms
   if (touch) gl.domElement.style.touchAction = "pan-y";
   controls.addEventListener("change", redraw);
+  // a plain wheel scrolls the page past the viewer (it used to zoom and freeze the drift);
+  // ctrl/⌘ + wheel — which is also what a trackpad pinch sends — still zooms
+  const wheel = (e: WheelEvent) => {
+    if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation();
+  };
+  gl.domElement.addEventListener("wheel", wheel, { capture: true });
 
   const drift = createDrift(camera, controls);
 
@@ -396,6 +429,7 @@ function createStage(gl: WebGLRenderer, scene: Scene, camera: PerspectiveCamera,
     api: { zoom, reset } satisfies ViewApi,
     dispose() {
       drift.dispose();
+      gl.domElement.removeEventListener("wheel", wheel, { capture: true });
       controls.removeEventListener("change", redraw);
       controls.dispose();
       env.dispose();
@@ -486,12 +520,16 @@ function Stage({
     const leave = () => {
       if (!down) setHover(null);
     };
+    // scrolling moves the board out from under a still cursor without a pointermove,
+    // which would leave a pin "hovered" and the drift held; let go of it instead
+    window.addEventListener("scroll", leave, { passive: true });
     el.addEventListener("pointermove", move);
     el.addEventListener("click", tap);
     el.addEventListener("pointerdown", onDown);
     window.addEventListener("pointerup", onUp);
     el.addEventListener("pointerleave", leave);
     return () => {
+      window.removeEventListener("scroll", leave);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("click", tap);
       el.removeEventListener("pointerdown", onDown);
@@ -607,7 +645,7 @@ export default function Pcb3D() {
             </p>
           ) : (
             <p className="bg-bg/60 px-1.5 py-0.5 text-fg-3">
-              {touch ? "geser putar · cubit zoom · tap pin" : "drag putar · scroll zoom · hover pin"}
+              {touch ? "geser putar · cubit zoom · tap pin" : "drag putar · ctrl+scroll zoom · hover pin"}
             </p>
           )}
         </div>
