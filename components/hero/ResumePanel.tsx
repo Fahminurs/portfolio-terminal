@@ -154,7 +154,7 @@ function Printer({ onClose }: { onClose: () => void }) {
         onClose();
       }}
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
-      className="man fixed inset-0 m-auto h-[calc(100dvh-16px)] max-h-none w-[calc(100vw-16px)] max-w-none overflow-visible bg-transparent p-0 text-fg md:h-[min(92vh,1100px)] md:w-[min(900px,94vw)]"
+      className="man fixed inset-0 m-auto h-[min(85dvh,760px)] max-h-none w-[calc(100vw-16px)] max-w-none overflow-visible bg-transparent p-0 text-fg md:h-[min(80vh,760px)] md:w-[min(900px,94vw)]"
     >
       <div
         className="man-frame tui-shadow relative flex h-full flex-col border-[3px] border-double border-line-2 bg-surface"

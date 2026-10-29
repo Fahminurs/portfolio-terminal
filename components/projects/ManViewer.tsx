@@ -330,7 +330,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
         close();
       }}
       onMouseDown={(e) => e.target === e.currentTarget && close()}
-      className="man fixed inset-0 m-auto h-[calc(100dvh-16px)] max-h-none w-[calc(100vw-16px)] max-w-none overflow-visible bg-transparent p-0 text-fg md:h-[min(88vh,780px)] md:w-[min(1180px,94vw)]"
+      className="man fixed inset-0 m-auto h-[min(85dvh,760px)] max-h-none w-[calc(100vw-16px)] max-w-none overflow-visible bg-transparent p-0 text-fg md:h-[min(78vh,660px)] md:w-[min(1180px,94vw)]"
     >
       <div
         className={cn(
@@ -399,7 +399,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
         <div className="flex min-h-0 min-w-0 shrink-0 flex-col border-b border-line-2 md:border-b-0 md:border-r">
           <div
             ref={stage}
-            className="backdrop relative h-[38dvh] touch-pan-y select-none bg-bg md:h-auto md:min-h-0 md:flex-1"
+            className="backdrop relative h-[30dvh] touch-pan-y select-none bg-bg md:h-auto md:min-h-0 md:flex-1"
             onPointerDown={(e) => (swipe.current = e.clientX)}
             onPointerUp={(e) => {
               const dx = swipe.current === null ? 0 : e.clientX - swipe.current;
