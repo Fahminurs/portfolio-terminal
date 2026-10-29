@@ -67,10 +67,8 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
 
   const calm = useCalm();
 
-  const setResumeOpen = useCallback((v: boolean) => {
-    setResumeOpenState(v);
-    if (v) requestAnimationFrame(() => scrollToId("resume"));
-  }, []);
+  // the resume is a modal now: nothing to scroll to
+  const setResumeOpen = useCallback((v: boolean) => setResumeOpenState(v), []);
 
   // scroll spy
   useEffect(() => {

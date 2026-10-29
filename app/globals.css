@@ -335,7 +335,7 @@ article.stack-hit h3::after { content: "  ← uses"; font-family: var(--font-mon
 /* ===== `lpr resume` (ResumePanel): the real CV coming out of a dot-matrix printer ===== */
 /* each page rides continuous-form paper: tractor strips with sprocket holes, a perforation between pages */
 .resume-paper {
-  --hole: var(--color-surface);
+  --hole: var(--color-bg); /* the sheet sits on bg inside the printer modal */
   position: relative;
   padding-inline: 30px;
   background: #f4f2ea;
