@@ -1,8 +1,10 @@
 import { TuiWindow } from "@/components/ui/TuiWindow";
 import { SerialMonitor } from "./SerialMonitor";
+import { ViewportSwitch } from "./ViewportSwitch";
 
-// Static ASCII fallback (§6.1) — also what mobile / reduced-motion get once the 3D view
-// lands in M3. Pin map is verbatim from ParkEasy_Alat main/config.h.
+// Static ASCII pinout: the "esp32.pinout" tab, and the fallback for plain mode / reduced
+// motion / no WebGL (the 3D view is the "esp32.obj" tab). Pin map is verbatim from
+// ParkEasy_Alat main/config.h.
 const BOARD = String.raw`
                     ┌──────────────────┐
               EN ───┤ ┌──────────────┐ ├─── IO23
@@ -63,20 +65,24 @@ function Line({ text }: { text: string }) {
 
 export function BoardViewport() {
   return (
-    <TuiWindow title={<>VIEWPORT_01 — esp32.pinout</>} className="print:hidden">
-      {/* font scales with the window (container query) so the full pinout always fits:
-          widest line measures 36.6em (every glyph, box drawing included, is 0.6em), so divide by 37.5 */}
-      <div className="@container">
-      <pre
-        aria-hidden
-        data-reveal
-        className="overflow-x-auto px-3 py-3 text-[min(10.5px,calc((100cqw-24px)/37.5))] leading-[1.2] text-fg-2"
-      >
-        {BOARD.split("\n").map((l, i) => (
-          <Line key={i} text={l} />
-        ))}
-      </pre>
-      </div>
+    <TuiWindow title={<>VIEWPORT_01 — ParkEasy ESP32</>} className="print:hidden">
+      <ViewportSwitch
+        pinout={
+          // font scales with the window (container query) so the full pinout always fits:
+          // widest line measures 36.6em (every glyph, box drawing included, is 0.6em), so divide by 37.5
+          <div className="@container">
+            <pre
+              aria-hidden
+              data-reveal
+              className="overflow-x-auto px-3 py-3 text-[min(10.5px,calc((100cqw-24px)/37.5))] leading-[1.2] text-fg-2"
+            >
+              {BOARD.split("\n").map((l, i) => (
+                <Line key={i} text={l} />
+              ))}
+            </pre>
+          </div>
+        }
+      />
       <p className="sr-only">
         Pinout ESP32 ParkEasy: servo di IO13 dan IO12, buzzer di IO18 dan IO19, HC-SR04 di IO14/27 dan
         IO26/25, I2C SDA IO21 dan SCL IO22 ke multiplexer TCA9548A, UART 115200 baud ke server AI.

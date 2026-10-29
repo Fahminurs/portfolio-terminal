@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@number-flow/react": "^0.6.2",
-    "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "asciinema-player": "^3.17.0",
     "clsx": "^2.1.1",
@@ -24,7 +23,9 @@
     "shiki": "^4.5.0",
     "simple-icons": "^16.36.0",
     "tailwind-merge": "^3.7.0",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "three-gpu-pathtracer": "^0.0.27",
+    "three-mesh-bvh": "^0.9.17"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
