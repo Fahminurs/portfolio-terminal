@@ -3,15 +3,17 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  EquirectangularReflectionMapping,
+  PMREMGenerator,
+  Spherical,
   Vector3,
-  type Camera,
   type MeshStandardMaterial,
+  type PerspectiveCamera,
   type Scene,
   type WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { GradientEquirectTexture, WebGLPathTracer } from "three-gpu-pathtracer";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { useCalm } from "@/lib/calm";
 import { cn } from "@/lib/utils";
 import { BUS_HEX, BUS_TEXT, LEFT, RIGHT, type Pin } from "./pins";
 import {
@@ -25,15 +27,13 @@ import {
   pinZ,
 } from "./pcbTextures";
 
-export type Mode = "opengl" | "raytrace";
 type Hover = { side: "L" | "R"; i: number } | null;
 
-const MAX_SAMPLES = 360;
 const PIN_TIP_Y = 0.08; // pick on the top stub: the legs under the board are hidden from above
 
 /* ─────────────────────────────── parts ── */
 
-// rhythm of each bus while idle (opengl mode only): fraction of a cycle the pin glows
+// rhythm of each bus while on screen: fraction of a cycle the pin glows
 const PULSE: Partial<Record<NonNullable<Pin["bus"]>, [period: number, duty: number, phase: number]>> = {
   i2c: [0.5, 0.18, 0],
   uart: [1.7, 0.12, 0.3],
@@ -243,7 +243,7 @@ function Board({ hover, animate }: { hover: Hover; animate: boolean }) {
         </mesh>
       </group>
 
-      {/* LEDs: PWR (red, steady) and IO2 (blue, blinks in opengl mode) */}
+      {/* LEDs: PWR (red, steady) and IO2 (blue, blinks) */}
       <mesh position={[-0.55, 0.04, 2.05]}>
         <boxGeometry args={[0.12, 0.06, 0.08]} />
         <meshStandardMaterial color="#ff5a52" emissive="#ff3b30" emissiveIntensity={2.2} roughness={0.3} />
@@ -259,111 +259,200 @@ function Board({ hover, animate }: { hover: Hover; animate: boolean }) {
   );
 }
 
-/* ─────────────────────────────── renderer: opengl ↔ raytrace ── */
 
-type Status = { mode: Mode; samples: number; compiling: boolean; info: string };
+/* ─────────────────────────────── renderer (realtime only — light on any GPU) ── */
 
-function makeEnvironment() {
-  // procedural studio sky: bright top, dark floor — no HDR file to fetch
-  const t = new GradientEquirectTexture(256);
-  t.topColor.set("#ffffff");
-  t.bottomColor.set("#2b302a");
-  t.exponent = 1.6;
-  t.update();
-  t.mapping = EquirectangularReflectionMapping;
-  return t;
+// opening shot: low three-quarter view from the antenna side, headers hanging below
+const VIEW_DIR = new Vector3(-7.4, 3.4, -1.7).normalize();
+const TARGET = new Vector3(0, -0.25, 0);
+const MIN_DIST = 3.2;
+const MAX_DIST = 24;
+const FIT_W = 6.6; // world width that must fit across the frame (board + perspective margin)
+const FRAME_PAD = 1.25; // opening shot sits a little back from a tight fit: room to drift and breathe
+
+type ViewApi = { zoom: (f: number) => void; reset: () => void };
+
+/** default viewing distance: the whole board fits the current aspect ratio, with padding */
+function fitDistance(camera: PerspectiveCamera) {
+  const tan = Math.tan((camera.fov * Math.PI) / 360);
+  return Math.min(MAX_DIST - 4, FRAME_PAD * Math.max(8, FIT_W / (2 * tan * camera.aspect)));
 }
 
-/** Imperative three.js setup (controls, path tracer, environment). Returns a disposer. */
-function createStage(
-  gl: WebGLRenderer,
-  scene: Scene,
-  camera: Camera,
-  env: GradientEquirectTexture,
-  touch: boolean,
-) {
+const RESUME_MS = 3500; // idle time after the visitor lets go before the camera drifts again
+
+/**
+ * Idle camera drift: orbit, tilt and distance each follow two incommensurate sines with random
+ * phases, so the path never visibly repeats. Eases in from wherever the camera is, pauses while
+ * the visitor drags / zooms.
+ */
+function createDrift(camera: PerspectiveCamera, controls: OrbitControls) {
+  const wave = (amp: [number, number], freq: [number, number]) => {
+    const p = [Math.random() * Math.PI * 2, Math.random() * Math.PI * 2];
+    // minus the value at t=0 → every wave starts at 0, so the drift begins exactly at the current view
+    return (t: number) =>
+      amp[0] * (Math.sin(freq[0] * t + p[0]) - Math.sin(p[0])) + amp[1] * (Math.sin(freq[1] * t + p[1]) - Math.sin(p[1]));
+  };
+  const orbit = wave([0.9, 0.45], [0.11, 0.29]);
+  const tilt = wave([0.16, 0.08], [0.15, 0.37]);
+  const dist = wave([0.05, 0.03], [0.09, 0.23]);
+  const base = new Spherical();
+  const s = new Spherical();
+  const v = new Vector3();
+  let t = 0;
+  let live = false;
+  let held = false;
+  let resumeAt = 0;
+
+  const hold = () => {
+    held = true;
+    live = false;
+  };
+  const release = () => {
+    held = false;
+    resumeAt = performance.now() + RESUME_MS;
+  };
+  controls.addEventListener("start", hold);
+  controls.addEventListener("end", release);
+
+  return {
+    /** start over from the current view (after the zoom / reset buttons) */
+    rebase() {
+      live = false;
+    },
+    /** advance one frame; true when it moved the camera */
+    step(dt: number, paused: boolean) {
+      if (paused || held || performance.now() < resumeAt) {
+        live = false;
+        return false;
+      }
+      if (!live) {
+        base.setFromVector3(v.copy(camera.position).sub(controls.target));
+        t = 0;
+        live = true;
+      }
+      t += Math.min(dt, 0.1);
+      const e = Math.min(1, t / 4);
+      const k = e * e * (3 - 2 * e); // smoothstep ease-in over the first 4 s
+      s.set(
+        base.radius * (1 + k * dist(t)),
+        Math.min(1.4, Math.max(0.45, base.phi + k * tilt(t))),
+        base.theta + k * orbit(t),
+      );
+      camera.position.setFromSpherical(s).add(controls.target);
+      return true;
+    },
+    dispose() {
+      controls.removeEventListener("start", hold);
+      controls.removeEventListener("end", release);
+    },
+  };
+}
+
+/** Imperative three.js setup (controls + studio environment). Returns a disposer. */
+function createStage(gl: WebGLRenderer, scene: Scene, camera: PerspectiveCamera, touch: boolean, redraw: () => void) {
+  // procedural studio reflections for the metal parts — no HDR file to fetch
+  const pmrem = new PMREMGenerator(gl);
+  const room = new RoomEnvironment();
+  const env = pmrem.fromScene(room, 0.04).texture;
+  room.dispose();
+  pmrem.dispose();
   scene.environment = env;
-  scene.environmentIntensity = 0.95;
+  scene.environmentIntensity = 0.55;
 
   const controls = new OrbitControls(camera, gl.domElement);
-  controls.target.set(0, -0.2, 0.1);
+  controls.target.copy(TARGET);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.enableZoom = false;
   controls.enablePan = false;
-  controls.minPolarAngle = 0.25;
-  controls.maxPolarAngle = 1.3;
-  controls.autoRotateSpeed = 0.9;
-  if (touch) {
-    // keep the page scrollable on phones: the board turns by itself, taps still pick pins
-    controls.enabled = false;
-    gl.domElement.style.touchAction = "pan-y";
-  }
+  controls.zoomToCursor = !touch;
+  controls.minDistance = MIN_DIST;
+  controls.maxDistance = MAX_DIST;
+  controls.minPolarAngle = 0.2;
+  controls.maxPolarAngle = 1.75; // a little below the board edge, to see the header legs
+  // phones: horizontal drag turns, vertical drag still scrolls the page, pinch zooms
+  if (touch) gl.domElement.style.touchAction = "pan-y";
+  controls.addEventListener("change", redraw);
 
-  const tracer = new WebGLPathTracer(gl);
-  tracer.tiles.set(2, 2);
-  tracer.bounces = 5;
-  tracer.filterGlossyFactor = 0.5;
-  tracer.minSamples = 3;
-  tracer.fadeDuration = 350;
-  tracer.renderDelay = 60;
-  tracer.renderScale = 1;
+  const drift = createDrift(camera, controls);
 
-  const onChange = () => tracer.updateCamera();
-  controls.addEventListener("change", onChange);
+  const reset = () => {
+    camera.position.copy(VIEW_DIR).multiplyScalar(fitDistance(camera)).add(TARGET);
+    controls.target.copy(TARGET);
+    controls.update();
+    drift.rebase();
+  };
+  const zoom = (f: number) => {
+    const d = camera.position.distanceTo(controls.target);
+    const next = Math.min(MAX_DIST, Math.max(MIN_DIST, d * f));
+    camera.position.sub(controls.target).setLength(next).add(controls.target);
+    controls.update();
+    drift.rebase();
+  };
+  reset();
 
   return {
     controls,
-    tracer,
+    drift,
+    api: { zoom, reset } satisfies ViewApi,
     dispose() {
-      controls.removeEventListener("change", onChange);
+      drift.dispose();
+      controls.removeEventListener("change", redraw);
       controls.dispose();
-      tracer.dispose();
+      env.dispose();
       scene.environment = null;
     },
   };
 }
 
 function Stage({
-  mode,
   hover,
   setHover,
   touch,
+  running,
+  wander,
   report,
+  bind,
 }: {
-  mode: Mode;
   hover: Hover;
   setHover: (h: Hover) => void;
   touch: boolean;
-  report: (s: Status) => void;
+  running: boolean;
+  wander: boolean;
+  report: (info: string) => void;
+  bind: (api: ViewApi | null) => void;
 }) {
-  const { gl, scene, camera, size } = useThree();
-  const [env] = useState(makeEnvironment);
+  const { gl, scene, camera, size, invalidate } = useThree();
   const ctrl = useRef<OrbitControls | null>(null);
-  const pt = useRef<WebGLPathTracer | null>(null);
-  const dirty = useRef(true);
+  const drift = useRef<ReturnType<typeof createDrift> | null>(null);
+  const api = useRef<ViewApi | null>(null);
   const last = useRef(0);
 
-  // controls + path tracer + environment, created once per renderer
   useEffect(() => {
-    const stage = createStage(gl, scene, camera, env, touch);
+    const stage = createStage(gl, scene, camera as PerspectiveCamera, touch, invalidate);
     ctrl.current = stage.controls;
-    pt.current = stage.tracer;
+    drift.current = stage.drift;
+    api.current = stage.api;
+    bind(stage.api);
     return () => {
       stage.dispose();
       ctrl.current = null;
-      pt.current = null;
+      drift.current = null;
+      api.current = null;
+      bind(null);
     };
-  }, [gl, scene, camera, env, touch]);
+  }, [gl, scene, camera, touch, invalidate, bind]);
 
-  // any change to what's on screen → rebuild the path-traced scene (tiny board: a few ms)
+  // re-frame the board when the panel changes shape (phone rotate, sidebar breakpoints)
   useEffect(() => {
-    dirty.current = true;
-  }, [mode, hover]);
+    if (size.width) api.current?.reset();
+  }, [size]);
 
+  // frames are drawn on demand; the pin/LED blink only needs ~12 fps
   useEffect(() => {
-    if (ctrl.current) ctrl.current.autoRotate = mode === "opengl" && !hover;
-  }, [mode, hover]);
+    if (!running) return;
+    const id = setInterval(() => invalidate(), 83);
+    return () => clearInterval(id);
+  }, [running, invalidate]);
 
   // screen-space pin picking: nearest pin tip within 18px of the pointer
   useEffect(() => {
@@ -412,39 +501,24 @@ function Stage({
   }, [gl, camera, setHover]);
 
   useFrame((_, dt) => {
-    ctrl.current?.update(dt);
-    const tracer = pt.current;
-    const cam = camera.position;
-    const rot = ((Math.atan2(cam.x, cam.z) * 180) / Math.PI + 360) % 360;
-    const info = `X ${cam.x.toFixed(2)}  Y ${cam.y.toFixed(2)}  Z ${cam.z.toFixed(2)}  ROT ${rot.toFixed(0).padStart(3, "0")}°`;
-
-    if (mode === "opengl" || !tracer) {
-      gl.render(scene, camera);
-    } else {
-      if (dirty.current) {
-        scene.updateMatrixWorld(true);
-        tracer.setScene(scene, camera);
-        dirty.current = false;
-      }
-      // converged → stop drawing; the canvas keeps the last frame
-      if (tracer.samples < MAX_SAMPLES) tracer.renderSample();
-    }
+    const c = ctrl.current;
+    // idle drift holds still while a pin is being read, so the HUD target doesn't slide away
+    const drifting = drift.current?.step(dt, !wander || !running || !!hover) ?? false;
+    // drifting, or damping still settling → keep drawing at full rate
+    if (c?.update(dt) || drifting) invalidate();
+    gl.render(scene, camera);
 
     const now = performance.now();
-    if (now - last.current > 120) {
+    if (c && now - last.current > 120) {
       last.current = now;
-      // `isCompiling` exists at runtime (WebGLPathTracer.js) but is missing from the package's .d.ts
-      const compiling = !!(tracer as (WebGLPathTracer & { isCompiling?: boolean }) | null)?.isCompiling;
-      report({ mode, samples: tracer ? Math.floor(tracer.samples) : 0, compiling, info });
+      const cam = camera.position;
+      const rot = ((Math.atan2(cam.x, cam.z) * 180) / Math.PI + 360) % 360;
+      const zoom = fitDistance(camera as PerspectiveCamera) / cam.distanceTo(c.target);
+      report(`zoom ${zoom.toFixed(1)}×  ROT ${rot.toFixed(0).padStart(3, "0")}°`);
     }
   }, 1);
 
-  // keep the aspect right when the panel resizes
-  useEffect(() => {
-    pt.current?.updateCamera();
-  }, [size]);
-
-  return <Board hover={hover} animate={mode === "opengl"} />;
+  return <Board hover={hover} animate={running} />;
 }
 
 /* ─────────────────────────────── viewport chrome ── */
@@ -452,13 +526,12 @@ function Stage({
 export default function Pcb3D() {
   const wrap = useRef<HTMLDivElement>(null);
   const readout = useRef<HTMLSpanElement>(null);
-  const status = useRef<HTMLSpanElement>(null);
+  const view = useRef<ViewApi | null>(null);
   const [hover, setHover] = useState<Hover>(null);
   const [running, setRunning] = useState(true);
+  const calm = useCalm(); // plain mode / reduced motion: the camera stays where it's put
   // client-only component (loaded with ssr:false), so window is available in initializers
   const [touch] = useState(() => matchMedia("(pointer: coarse)").matches);
-  // raytracing by default on desktop; phones start in realtime (they can opt in)
-  const [mode, setMode] = useState<Mode>(() => (touch || innerWidth < 768 ? "opengl" : "raytrace"));
 
   useEffect(() => {
     const el = wrap.current;
@@ -477,57 +550,52 @@ export default function Pcb3D() {
     };
   }, []);
 
-  // per-frame status goes straight to our own DOM nodes, not through React state
-  const report = useCallback((s: Status) => {
-    if (readout.current) readout.current.textContent = s.info;
-    if (!status.current) return;
-    if (s.mode === "opengl") status.current.textContent = "opengl · realtime";
-    else if (s.compiling) status.current.textContent = "raytracing · compiling shaders…";
-    else {
-      const n = Math.min(s.samples, MAX_SAMPLES);
-      const filled = Math.round((n / MAX_SAMPLES) * 10);
-      status.current.textContent = `raytracing [${"#".repeat(filled)}${"-".repeat(10 - filled)}] ${n}/${MAX_SAMPLES} spp${n >= MAX_SAMPLES ? " · done" : ""}`;
-    }
+  // per-frame readout goes straight to our own DOM node, not through React state
+  const report = useCallback((info: string) => {
+    if (readout.current) readout.current.textContent = info;
+  }, []);
+  const bind = useCallback((api: ViewApi | null) => {
+    view.current = api;
   }, []);
 
   const pin = hover ? (hover.side === "L" ? LEFT : RIGHT)[hover.i] : null;
+  const tool = "border border-line-2 bg-bg/80 px-2 py-1 text-fg-2 hover:text-fg -ml-px first:ml-0";
 
   return (
     <div ref={wrap}>
       <div className={cn("relative h-[clamp(240px,64vw,340px)] w-full", pin ? "cursor-pointer" : !touch && "cursor-grab")}>
         <Canvas
-          frameloop={running ? "always" : "never"}
-          dpr={[1, 1.5]}
-          gl={{ antialias: true, alpha: true, preserveDrawingBuffer: false }}
-          camera={{ position: [4.6, 5.2, 5.4], fov: 28, near: 0.1, far: 60 }}
+          frameloop={running ? "demand" : "never"}
+          dpr={[1, touch ? 1.25 : 1.5]}
+          gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
+          camera={{ position: [-7.4, 2.9, -1.7], fov: 28, near: 0.1, far: 60 }}
           style={{ position: "absolute", inset: 0 }}
           aria-label="Model 3D board ESP32 ParkEasy"
         >
-          <directionalLight position={[3, 7, 2]} intensity={1.6} />
-          <Stage mode={mode} hover={hover} setHover={setHover} touch={touch} report={report} />
+          <directionalLight position={[-3, 7, -2]} intensity={1.5} />
+          <directionalLight position={[4, 3, 5]} intensity={0.35} />
+          <Stage
+            hover={hover}
+            setHover={setHover}
+            touch={touch}
+            running={running}
+            wander={!calm}
+            report={report}
+            bind={bind}
+          />
         </Canvas>
 
-        {/* KiCad-like render switch */}
-        <div className="absolute right-2 top-2 flex text-[10px]" role="radiogroup" aria-label="Mode render">
-          {(
-            [
-              ["opengl", "OpenGL"],
-              ["raytrace", "Raytracing"],
-            ] as const
-          ).map(([m, label]) => (
-            <button
-              key={m}
-              role="radio"
-              aria-checked={mode === m}
-              onClick={() => setMode(m)}
-              className={cn(
-                "border border-line-2 px-2 py-1 first:border-r-0",
-                mode === m ? "bg-fg font-bold text-bg" : "bg-bg/80 text-fg-2 hover:text-fg",
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        {/* zoom tools */}
+        <div className="absolute right-2 top-2 flex text-[11px] leading-none" role="toolbar" aria-label="Zoom">
+          <button className={tool} onClick={() => view.current?.zoom(0.8)} aria-label="Zoom in">
+            +
+          </button>
+          <button className={tool} onClick={() => view.current?.zoom(1.25)} aria-label="Zoom out">
+            −
+          </button>
+          <button className={tool} onClick={() => view.current?.reset()} aria-label="Reset tampilan">
+            reset
+          </button>
         </div>
 
         {/* HUD — selected pin, colored by its bus */}
@@ -538,15 +606,15 @@ export default function Pcb3D() {
               <span className="text-fg-2"> — {pin.fn ?? "tidak dipakai di ParkEasy"}</span>
             </p>
           ) : (
-            <p className="bg-bg/60 px-1.5 py-0.5 text-fg-3">{touch ? "tap pin untuk detail" : "drag untuk putar · hover pin"}</p>
+            <p className="bg-bg/60 px-1.5 py-0.5 text-fg-3">
+              {touch ? "geser putar · cubit zoom · tap pin" : "drag putar · scroll zoom · hover pin"}
+            </p>
           )}
         </div>
       </div>
       <p className="flex flex-wrap justify-between gap-x-3 border-t border-line px-3 py-1 text-[10px] tabular-nums text-fg-3">
-        <span ref={status}>opengl · realtime</span>
-        <span ref={readout} className="hidden sm:inline">
-          X 0.00 Y 0.00 Z 0.00 ROT 000°
-        </span>
+        <span>realtime · esp32 devkit v1</span>
+        <span ref={readout}>zoom 1.0× ROT 000°</span>
       </p>
     </div>
   );
