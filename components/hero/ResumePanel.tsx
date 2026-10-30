@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { resumeDoc } from "@/content/data";
 import { useShell } from "@/components/shell/ShellProvider";
 import { useCalm } from "@/lib/calm";
+import { hold, play } from "@/lib/sfx";
 
 /** `less resume.pdf` fires this right after opening: show every page at once, no print run */
 export const RESUME_FF_EVENT = "fahmi:resume-ff";
@@ -92,6 +93,7 @@ function Printer({ onClose }: { onClose: () => void }) {
     const html = document.documentElement;
     const overflow = html.style.overflow;
     dialog.current?.showModal();
+    play("thunk");
     html.style.overflow = "hidden";
     return () => {
       html.style.overflow = overflow;
@@ -111,6 +113,16 @@ function Printer({ onClose }: { onClose: () => void }) {
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [calm, n]);
+
+  // the head buzzes while it prints; a beep when the job is done
+  useEffect(() => {
+    if (done) return;
+    const stop = hold("print");
+    return () => {
+      stop();
+      play("ok");
+    };
+  }, [done]);
 
   // paper feed: keep the band being printed a little below the middle of the view
   useEffect(() => {

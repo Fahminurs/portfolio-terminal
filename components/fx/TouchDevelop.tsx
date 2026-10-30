@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useCalm } from "@/lib/calm";
+import { hold, play } from "@/lib/sfx";
 
 const HOLD_MS = 650; // finger down this long → fully developed
 const SINK_MS = 420; // let go → back to dither
@@ -37,6 +38,7 @@ export function TouchDevelop() {
     let max = 0;
     let p = 0;
     let swallowClick = false;
+    let hum = () => {};
 
     const dropRing = () => {
       ring?.remove();
@@ -46,6 +48,8 @@ export function TouchDevelop() {
     // fully developed while still held: the ring has done its job; buzz once
     const whole = () => {
       dropRing();
+      hum();
+      play("whole");
       navigator.vibrate?.(12);
       swallowClick = true; // the release after a hold isn't a tap
     };
@@ -91,6 +95,7 @@ export function TouchDevelop() {
       if (!card) return;
       cancelAnimationFrame(raf);
       dropRing();
+      hum();
       const el = card;
       const from = p;
       const r = max;
@@ -148,6 +153,7 @@ export function TouchDevelop() {
       ring.style.left = `${x}px`;
       ring.style.top = `${y}px`;
       el.append(ring);
+      hum = hold("develop", HOLD_MS);
       const t0 = performance.now();
       const grow = (now: number) => {
         if (card !== el) return;

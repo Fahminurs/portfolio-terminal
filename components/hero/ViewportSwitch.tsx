@@ -4,16 +4,41 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useCalm } from "@/lib/calm";
 import { cn } from "@/lib/utils";
+import { AsciiProgress } from "@/components/fx/AsciiProgress";
 
 // three.js stays out of the initial bundle — fetched only when the 3D view is shown
 const Pcb3D = dynamic(() => import("./Pcb3D"), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-[clamp(240px,64vw,340px)] items-center justify-center text-[11px] text-fg-3">
-      [ loading esp32.3d<span className="cursor-block ml-1 !h-[0.9em] !w-[0.5em]" /> ]
-    </div>
-  ),
+  loading: () => <ChunkLoading />,
 });
+
+/**
+ * First half of the 3D loader, while the three.js chunk downloads. The browser doesn't report
+ * a dynamic import's progress, so the bar creeps toward 55% (where Pcb3D's own log picks up).
+ */
+function ChunkLoading() {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    const id = window.setInterval(() => setP(0.55 * (1 - Math.exp(-(performance.now() - t0) / 900))), 90);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="flex h-[clamp(240px,64vw,340px)] items-center px-4">
+      <AsciiProgress
+        cmd="load esp32.3d"
+        className="w-full max-w-[420px]"
+        steps={[
+          { label: "fetch three.js + r3f", done: false },
+          { label: "webgl context", done: false },
+          { label: "compile shaders", done: false },
+          { label: "first frame", done: false },
+        ]}
+        progress={p}
+      />
+    </div>
+  );
+}
 
 function hasWebGL() {
   try {

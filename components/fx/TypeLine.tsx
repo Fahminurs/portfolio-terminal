@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCalm } from "@/lib/calm";
 import { useVisits } from "@/lib/visits";
+import { play } from "@/lib/sfx";
 
 type Props = {
   text: string;
@@ -33,6 +34,7 @@ export function TypeLine({ text, className, delay = 0, cps = 40, cursor = false 
       id = window.setInterval(() => {
         i++;
         setN(i);
+        play("tick", 35);
         if (i >= text.length) window.clearInterval(id);
       }, 1000 / cps);
     }, delay);

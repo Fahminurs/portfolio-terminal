@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useCalm } from "@/lib/calm";
+import { BufferBar } from "./FetchBar";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -16,9 +18,11 @@ type Props = {
 /** Card media that is already moving: a silent teaser loop (poster only in calm mode). */
 export function LoopVideo({ src, poster, label, cta, className }: Props) {
   const calm = useCalm();
+  const [el, setEl] = useState<HTMLVideoElement | null>(null);
   return (
     <div className={cn("relative aspect-[4/3] overflow-hidden border border-line bg-bg", className)}>
       <video
+        ref={setEl}
         key={String(calm)}
         src={src}
         poster={poster}
@@ -31,6 +35,7 @@ export function LoopVideo({ src, poster, label, cta, className }: Props) {
         className="absolute inset-0 size-full object-cover"
       />
       <span className="absolute left-2 top-2 border border-line bg-bg px-1.5 py-px text-[10px] text-fg-3">{label}</span>
+      {!calm && <BufferBar video={el} className="absolute bottom-2 left-2" />}
       <span className="absolute inset-0 grid place-items-center">
         <span className="border border-accent bg-bg/85 px-2.5 py-1 text-[11px] text-accent transition-colors group-hover:bg-accent group-hover:text-bg">
           ▶ {cta}

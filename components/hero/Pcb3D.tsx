@@ -14,6 +14,7 @@ import {
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { useCalm } from "@/lib/calm";
+import { AsciiProgress } from "@/components/fx/AsciiProgress";
 import { cn } from "@/lib/utils";
 import { BUS_HEX, BUS_TEXT, LEFT, RIGHT, type Pin } from "./pins";
 import {
@@ -446,6 +447,7 @@ function Stage({
   wander,
   report,
   bind,
+  boot,
 }: {
   hover: Hover;
   setHover: (h: Hover) => void;
@@ -454,12 +456,15 @@ function Stage({
   wander: boolean;
   report: (info: string) => void;
   bind: (api: ViewApi | null) => void;
+  /** loader milestones (BootLog): shaders compiled, first frame on screen */
+  boot: (step: "shaders" | "frame") => void;
 }) {
   const { gl, scene, camera, size, invalidate } = useThree();
   const ctrl = useRef<OrbitControls | null>(null);
   const drift = useRef<ReturnType<typeof createDrift> | null>(null);
   const api = useRef<ViewApi | null>(null);
   const last = useRef(0);
+  const drawn = useRef(false);
 
   useEffect(() => {
     const stage = createStage(gl, scene, camera as PerspectiveCamera, touch, invalidate);
@@ -467,6 +472,10 @@ function Stage({
     drift.current = stage.drift;
     api.current = stage.api;
     bind(stage.api);
+    // compile every material's program now (the board is mounted by this point), so the
+    // first frame doesn't hitch — and the loader's "shaders" line is a real step
+    gl.compile(scene, camera);
+    boot("shaders");
     return () => {
       stage.dispose();
       ctrl.current = null;
@@ -474,7 +483,7 @@ function Stage({
       api.current = null;
       bind(null);
     };
-  }, [gl, scene, camera, touch, invalidate, bind]);
+  }, [gl, scene, camera, touch, invalidate, bind, boot]);
 
   // re-frame the board when the panel changes width (phone rotate, sidebar breakpoints). Not on
   // `size` itself: R3F measures with scroll tracking, so its top/left — and on phones the height,
@@ -548,6 +557,10 @@ function Stage({
     // drifting, or damping still settling → keep drawing at full rate
     if (c?.update(dt) || drifting) invalidate();
     gl.render(scene, camera);
+    if (!drawn.current) {
+      drawn.current = true;
+      boot("frame");
+    }
 
     const now = performance.now();
     if (c && now - last.current > 120) {
@@ -573,6 +586,21 @@ export default function Pcb3D() {
   const calm = useCalm(); // plain mode / reduced motion: the camera stays where it's put
   // client-only component (loaded with ssr:false), so window is available in initializers
   const [touch] = useState(() => matchMedia("(pointer: coarse)").matches);
+  // terminal loader over the canvas until the first frame is up (continues ViewportSwitch's)
+  const [glUp, setGlUp] = useState(false);
+  const [booted, setBooted] = useState({ shaders: false, frame: false });
+  const [leaving, setLeaving] = useState(false);
+  const [loaderGone, setLoaderGone] = useState(false);
+  const boot = useCallback((step: "shaders" | "frame") => setBooted((b) => (b[step] ? b : { ...b, [step]: true })), []);
+  useEffect(() => {
+    if (!booted.frame) return;
+    const a = window.setTimeout(() => setLeaving(true), 380);
+    const b = window.setTimeout(() => setLoaderGone(true), 680);
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
+  }, [booted.frame]);
 
   useEffect(() => {
     const el = wrap.current;
@@ -612,6 +640,7 @@ export default function Pcb3D() {
           camera={{ position: [-7.4, 2.9, -1.7], fov: 28, near: 0.1, far: 60 }}
           style={{ position: "absolute", inset: 0 }}
           aria-label="Model 3D board ESP32 ParkEasy"
+          onCreated={() => setGlUp(true)}
         >
           <directionalLight position={[-3, 7, -2]} intensity={1.5} />
           <directionalLight position={[4, 3, 5]} intensity={0.35} />
@@ -623,8 +652,25 @@ export default function Pcb3D() {
             wander={!calm}
             report={report}
             bind={bind}
+            boot={boot}
           />
         </Canvas>
+
+        {!loaderGone && (
+          <div className={cn("absolute inset-0 z-10 flex items-center bg-bg px-4", leaving && "loader-out")}>
+            <AsciiProgress
+              cmd="load esp32.3d"
+              className="w-full max-w-[420px]"
+              steps={[
+                { label: "fetch three.js + r3f", done: true },
+                { label: "webgl context", done: glUp },
+                { label: "compile shaders", done: booted.shaders },
+                { label: "first frame", done: booted.frame },
+              ]}
+              progress={0.55 + (glUp ? 0.15 : 0) + (booted.shaders ? 0.15 : 0) + (booted.frame ? 0.15 : 0)}
+            />
+          </div>
+        )}
 
         {/* zoom tools */}
         <div className="absolute right-2 top-2 flex text-[11px] leading-none" role="toolbar" aria-label="Zoom">

@@ -5,15 +5,17 @@ import { cn, scrollToId } from "@/lib/utils";
 import { useShell } from "./ShellProvider";
 import { KEYS_EVENT } from "./KeyHelp";
 import { SocialLink } from "@/components/ui/SocialLink";
+import { SfxToggle } from "@/components/ui/SfxToggle";
 
 export function Titlebar() {
   const { setPaletteOpen } = useShell();
   return (
     <div className="sticky top-0 z-40 flex h-9 print:hidden items-center justify-between border-b border-line bg-bg/95 px-4 text-[11px] text-fg-2 md:px-8">
-      <div className="flex items-center gap-1.5" aria-hidden>
-        <span className="size-2.5 rounded-full border border-line-2" />
-        <span className="size-2.5 rounded-full border border-line-2" />
-        <span className="size-2.5 rounded-full border border-line-2" />
+      <div className="flex items-center gap-1.5">
+        <span aria-hidden className="size-2.5 rounded-full border border-line-2" />
+        <span aria-hidden className="size-2.5 rounded-full border border-line-2" />
+        <span aria-hidden className="size-2.5 rounded-full border border-line-2" />
+        <SfxToggle />
       </div>
       <div className="hidden items-center gap-5 md:flex">
         <button

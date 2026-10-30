@@ -8,6 +8,8 @@ import { useCalm } from "@/lib/calm";
 import { langColor } from "@/lib/lang";
 import { cn } from "@/lib/utils";
 import { TechIcon } from "@/components/ui/TechIcon";
+import { BufferBar, FetchBar } from "@/components/fx/FetchBar";
+import { play } from "@/lib/sfx";
 
 export type Man = Pick<Project, "slug" | "title" | "category" | "period" | "summary" | "stack" | "repo"> & {
   gallery: Figure[];
@@ -222,6 +224,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
   const swipe = useRef<number | null>(null);
   const [i, setI] = useState(start);
   const [pos, setPos] = useState({ line: 1, total: 1, end: false });
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
   const calm = useCalm();
   const figs = man.gallery;
   const n = figs.length;
@@ -247,6 +250,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
     const html = document.documentElement;
     const overflow = html.style.overflow;
     dialog.current?.showModal();
+    play("thunk");
     html.style.overflow = "hidden";
     // ??= keeps one token across StrictMode's double effect run, so only one entry is pushed
     token.current ??= `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -408,9 +412,12 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
             }}
           >
             <canvas ref={canvas} role="img" aria-label={fig.caption} className="absolute inset-0 size-full" />
+            {!fig.video && <FetchBar key={fig.src} src={fig.src} className="absolute bottom-3 left-3 z-[3]" />}
+            {fig.video && <BufferBar video={videoEl} className="absolute bottom-3 left-3 z-[3]" />}
             {fig.video && (
               // lands once the scan has developed its poster underneath
               <video
+                ref={setVideoEl}
                 key={fig.video}
                 src={fig.video}
                 poster={fig.src}

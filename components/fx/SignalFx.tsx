@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCalm } from "@/lib/calm";
+import { play } from "@/lib/sfx";
 
 /**
  * The machine on the other end has a bad signal. One place for the ambient interference:
@@ -55,7 +56,11 @@ export function SignalFx() {
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
-            if (!visible.has(e.target)) later(() => pulse(e.target, "data-glitch", 420), rand(150, 500));
+            if (!visible.has(e.target))
+              later(() => {
+                pulse(e.target, "data-glitch", 420);
+                play("glitch", 150);
+              }, rand(150, 500));
             visible.add(e.target);
           } else visible.delete(e.target);
         }
@@ -77,6 +82,7 @@ export function SignalFx() {
       if (!document.hidden && visible.size) {
         const list = [...visible];
         pulse(list[Math.floor(Math.random() * list.length)], "data-glitch", 320);
+        play("glitch", 150);
       }
       later(burst, rand(4000, 11000));
     };
@@ -87,6 +93,7 @@ export function SignalFx() {
       if (!document.hidden && tracking.current) {
         pulse(tracking.current, "data-run", 950);
         pulse(html, "data-tracking", 950);
+        play("tracking");
       }
       later(roll, rand(9000, 22000));
     };
@@ -102,6 +109,7 @@ export function SignalFx() {
       lastY = window.scrollY;
       lastT = now;
       if (v > 3.2) {
+        if (!("tear" in html.dataset)) play("glitch", 400);
         html.dataset.tear = "";
         clearTimeout(tearOff);
         tearOff = window.setTimeout(() => delete html.dataset.tear, 160);
@@ -134,6 +142,7 @@ export function SignalFx() {
         b.append(s);
       }
       document.body.append(b);
+      play("key");
       later(() => b.remove(), 420);
     };
 
@@ -148,6 +157,7 @@ export function SignalFx() {
         fired++;
         const [lost, back] = GHOST_LINES[Math.floor(Math.random() * GHOST_LINES.length)];
         if (stat.current) pulse(stat.current, "data-run", 760);
+        play("static");
         setGhost(lost);
         later(() => setGhost(back), 1900);
         later(() => setGhost(null), 4600);
@@ -155,6 +165,11 @@ export function SignalFx() {
       }, IDLE_MS);
     };
     const wake = () => arm();
+    // keyboard: a dry key click for typing and shortcuts
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key.length === 1 || e.key === "Enter" || e.key === "Backspace") play("key", 25);
+    };
     arm();
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -163,6 +178,7 @@ export function SignalFx() {
     window.addEventListener("pointerdown", wake, { passive: true });
     window.addEventListener("pointerup", onUp, { passive: true });
     window.addEventListener("keydown", wake);
+    window.addEventListener("keydown", onKey);
     return () => {
       io.disconnect();
       mo.disconnect();
@@ -175,6 +191,7 @@ export function SignalFx() {
       window.removeEventListener("pointerdown", wake);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("keydown", wake);
+      window.removeEventListener("keydown", onKey);
       delete html.dataset.tear;
       delete html.dataset.tracking;
     };

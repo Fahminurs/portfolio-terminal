@@ -434,6 +434,21 @@ html[data-tear] .glitch::after { opacity: 0.75; transform: translateX(3px); clip
   .glitch::before, .glitch::after, .man-frame::after { display: none; }
 }
 
+/* ASCII spinner for terminal-style loaders (AsciiProgress) */
+.ascii-spin::before { content: "|"; animation: ascii-spin 480ms steps(1) infinite; }
+@keyframes ascii-spin {
+  0% { content: "|"; }
+  25% { content: "/"; }
+  50% { content: "-"; }
+  75% { content: "\\"; }
+}
+/* a finished loader prints its last line, then lifts off the canvas */
+@keyframes loader-out {
+  0% { clip-path: inset(0 0 0 0); }
+  100% { clip-path: inset(0 0 100% 0); }
+}
+.loader-out { animation: loader-out 260ms steps(8, end) forwards; }
+
 /* ===== TUI layer ===== */
 
 /* window titles cut into the top border (TuiWindow) */
