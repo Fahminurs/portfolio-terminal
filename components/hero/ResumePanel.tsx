@@ -84,11 +84,27 @@ export function ResumePanel() {
   return createPortal(<DocPrinter doc={CV} onClose={() => setResumeOpen(false)} />, document.body);
 }
 
+// a document prints once per visit; opening it again shows the finished pages straight away
+const PRINTED_KEY = "fahmi:printed";
+function printedDocs(): string[] {
+  try {
+    return JSON.parse(sessionStorage.getItem(PRINTED_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+function markPrinted(href: string) {
+  try {
+    sessionStorage.setItem(PRINTED_KEY, JSON.stringify([...new Set([...printedDocs(), href])]));
+  } catch {}
+}
+
 export function DocPrinter({ doc, onClose }: { doc: Doc; onClose: () => void }) {
   const calm = useCalm();
   const n = doc.pages.length;
   const [z, setZ] = useState(0); // index into ZOOMS
-  const [t, setT] = useState(calm ? n : 0); // pages printed so far, 0..n
+  const [again] = useState(() => printedDocs().includes(doc.href));
+  const [t, setT] = useState(calm || again ? n : 0); // pages printed so far, 0..n
   const skip = useRef(false);
   const follow = useRef(true); // the sheet tracks the head until the reader scrolls it themselves
   const dialog = useRef<HTMLDialogElement>(null);
@@ -111,7 +127,11 @@ export function DocPrinter({ doc, onClose }: { doc: Doc; onClose: () => void }) 
   }, []);
 
   useEffect(() => {
-    if (calm) return;
+    if (done) markPrinted(doc.href);
+  }, [done, doc.href]);
+
+  useEffect(() => {
+    if (calm || again) return;
     let raf = 0;
     const t0 = performance.now();
     const step = (now: number) => {
@@ -121,7 +141,7 @@ export function DocPrinter({ doc, onClose }: { doc: Doc; onClose: () => void }) 
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [calm, n]);
+  }, [calm, again, n]);
 
   // the head buzzes while it prints; a beep when the job is done
   useEffect(() => {

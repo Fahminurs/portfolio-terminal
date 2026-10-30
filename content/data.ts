@@ -465,6 +465,7 @@ export const experience = [
       card: "/media/exp-irostech.jpg",
       dither: "/media/dither/exp-irostech.png",
       title: "Nilai magang PT. Irostech — Fahmi Nursafaat",
+      label: "nilai-magang.pdf", // short, for the card
       file: "nilai-magang-irostech.pdf",
       href: "/docs/irostech/nilai-magang-irostech.pdf",
       // the grading form first: that's the proof; the department's cover letter after it
@@ -484,6 +485,7 @@ export const experience = [
       card: "/media/exp-dbs-coding-camp.jpg",
       dither: "/media/dither/exp-dbs-coding-camp.png",
       title: "Sertifikat DBS Coding Camp 2025 — Fahmi Nursafaat",
+      label: "certificate.pdf",
       file: "certificate-dbs-coding-camp-2025.pdf",
       href: "/docs/dbs-coding-camp/certificate-dbs-coding-camp-2025.pdf",
       pages: [
@@ -501,6 +503,7 @@ export const experience = [
       card: "/media/exp-dies-natalis.jpg",
       dither: "/media/dither/exp-dies-natalis.png",
       title: "Sertifikat Dies Natalis Teknik Komputer 2024 — Fahmi Nursafaat",
+      label: "sertifikat.png",
       file: "sertifikat-dies-natalis-2024.png",
       href: "/docs/dies-natalis/sertifikat-dies-natalis-2024.png",
       pages: [{ src: "/docs/dies-natalis/page-1.webp", w: 2600, h: 1839 }],

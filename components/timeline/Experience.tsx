@@ -37,7 +37,7 @@ function DocCard({ doc, alt }: { doc: (typeof experience)[number]["doc"]; alt: s
         aria-label={`Buka ${doc.title} (${n} halaman)`}
         className="man-trigger group relative block w-full max-w-sm cursor-zoom-in text-left md:max-w-none"
       >
-        <DitherReveal src={doc.card} dither={doc.dither} alt={alt} label={doc.file} focusable={false} className="aspect-[4/3] w-full" />
+        <DitherReveal src={doc.card} dither={doc.dither} alt={alt} label={doc.label} focusable={false} className="aspect-[4/3] w-full" />
         <span
           aria-hidden
           className="pointer-events-none absolute bottom-2 right-2 z-10 border border-line-2 bg-bg px-1.5 py-px text-[10px] text-fg-3 transition-colors group-hover:border-accent group-hover:text-accent group-focus-visible:border-accent group-focus-visible:text-accent"
