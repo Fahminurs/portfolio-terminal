@@ -110,7 +110,7 @@ export function SfxFab() {
           if (e.key === "Home") setSfxVolume(0);
           else if (e.key === "End") setSfxVolume(VOL_STEPS);
           else if (!d) return;
-          else setSfxVolume(vol + d);
+          else setSfxVolume(sfxVolume() + d);
           show();
           e.preventDefault();
         }}

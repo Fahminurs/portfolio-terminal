@@ -34,7 +34,8 @@ const KEY = "fahmi:sfx";
 const CHANGE = "fahmi:sfx-change";
 const VOL_KEY = "fahmi:vol";
 const DRIVE = 7; // into a soft clipper + limiter: as loud as the speaker goes, no digital clipping
-export const VOL_STEPS = 10; // the volume knob clicks in tenths; full (the max above) by default
+export const VOL_STEPS = 10; // the volume knob clicks in tenths
+const VOL_DEFAULT = 8; // 80% until the visitor sets their own (kept in localStorage across reloads)
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -70,9 +71,9 @@ export function setSfxOn(on: boolean) {
 export function sfxVolume() {
   try {
     const v = Number(localStorage.getItem(VOL_KEY));
-    return localStorage.getItem(VOL_KEY) === null || !Number.isFinite(v) ? VOL_STEPS : Math.max(0, Math.min(VOL_STEPS, Math.round(v)));
+    return localStorage.getItem(VOL_KEY) === null || !Number.isFinite(v) ? VOL_DEFAULT : Math.max(0, Math.min(VOL_STEPS, Math.round(v)));
   } catch {
-    return VOL_STEPS;
+    return VOL_DEFAULT;
   }
 }
 
@@ -99,7 +100,7 @@ export function useSfxVolume() {
       return () => window.removeEventListener(CHANGE, cb);
     },
     sfxVolume,
-    () => VOL_STEPS,
+    () => VOL_DEFAULT,
   );
 }
 
