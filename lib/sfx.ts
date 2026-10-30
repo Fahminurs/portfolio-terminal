@@ -262,8 +262,10 @@ export function play(name: Sfx, gap = 0) {
     case "zap": // the pointer lands on a button: it's live — an electric arc
       arc(c, t, 0.16 + Math.random() * 0.1, 0.4);
       break;
-    case "hover": // the pointer lands on something live
-      tone(c, t, 3400 + Math.random() * 400, 0.016, "square", 0.08);
+    case "hover": // a rotary switch clicking over a detent: a hard tick with a little body
+      noise(c, t, 0.006, 0.5, "bandpass", 4200, 1.2);
+      tone(c, t, 2200, 0.012, "square", 0.16, 1400);
+      tone(c, t + 0.004, 600, 0.02, "triangle", 0.12, 300);
       break;
     case "click": // a heavier relay click than a key
       tone(c, t, 420, 0.03, "square", 0.24, 140);

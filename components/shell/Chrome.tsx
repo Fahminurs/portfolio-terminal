@@ -70,7 +70,7 @@ export function PaneNav() {
         {sections.map((s) => {
           const on = active === s.id;
           return (
-            <button
+            <button data-sfx="tick"
               key={s.id}
               onClick={() => scrollToId(s.id)}
               aria-current={on ? "true" : undefined}

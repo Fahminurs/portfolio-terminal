@@ -177,7 +177,7 @@ function Peek({ side, k, fig, onGo }: { side: "prev" | "next"; k: number; fig: F
     WebkitMaskPosition: next ? "left center" : "right center",
   };
   return (
-    <button
+    <button data-sfx="tick"
       onClick={onGo}
       onPointerDown={(e) => e.stopPropagation()}
       onPointerUp={(e) => e.stopPropagation()}
@@ -455,10 +455,10 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
             </p>
             {n > 1 && (
               <span className="flex shrink-0 gap-1">
-                <button onClick={() => go(-1)} aria-label="Gambar sebelumnya" className="border border-line-2 px-2 py-0.5 text-fg-2 transition-colors hover:border-accent hover:text-accent">
+                <button data-sfx="tick" onClick={() => go(-1)} aria-label="Gambar sebelumnya" className="border border-line-2 px-2 py-0.5 text-fg-2 transition-colors hover:border-accent hover:text-accent">
                   ◂ h
                 </button>
-                <button onClick={() => go(1)} aria-label="Gambar berikutnya" className="border border-line-2 px-2 py-0.5 text-fg-2 transition-colors hover:border-accent hover:text-accent">
+                <button data-sfx="tick" onClick={() => go(1)} aria-label="Gambar berikutnya" className="border border-line-2 px-2 py-0.5 text-fg-2 transition-colors hover:border-accent hover:text-accent">
                   l ▸
                 </button>
               </span>
@@ -468,7 +468,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
             <ol className="scrollbar-none flex gap-2 overflow-x-auto border-t border-line px-3 py-2.5" aria-label="Daftar gambar">
               {figs.map((f, k) => (
                 <li key={f.src} className="shrink-0">
-                  <button
+                  <button data-sfx="tick"
                     onClick={() => setI(k)}
                     aria-label={`Gambar ${k + 1}: ${f.caption}`}
                     aria-current={k === i}

@@ -111,7 +111,7 @@ export function Statusline() {
                 const on = s.id === active;
                 return (
                   <li key={s.id}>
-                    <button
+                    <button data-sfx="tick"
                       onClick={() => {
                         setSheetOpen(false);
                         scrollToId(s.id);

@@ -180,14 +180,15 @@ export function SignalFx() {
     };
     arm();
 
-    // --- pointer over live things: buttons are live wires (an electric arc), a link just blips
+    // --- hover, opt-in only: the glitchy call-to-action buttons are live wires (an electric arc),
+    // navigation (data-sfx="tick") clicks like a rotary switch; everything else stays silent
     let over: Element | null = null;
     const onOver = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
-      const live = e.target instanceof Element ? e.target.closest("a, button, [role=button], summary, .glitch-hover") : null;
+      const live = e.target instanceof Element ? e.target.closest(".glitch-hover, [data-sfx=tick]") : null;
       if (live === over) return;
       over = live;
-      if (live) play(live.matches("button, [role=button], .glitch-hover") ? "zap" : "hover", 45);
+      if (live) play(live.classList.contains("glitch-hover") ? "zap" : "hover", 45);
     };
 
     // --- any dialog closing powers down like a CRT (close doesn't bubble: catch it on the way down)
