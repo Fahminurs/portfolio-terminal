@@ -33,6 +33,7 @@ export type Sfx =
 const KEY = "fahmi:sfx";
 const CHANGE = "fahmi:sfx-change";
 const DRIVE = 7; // into a soft clipper + limiter: as loud as the speaker goes, no digital clipping
+const OUTPUT = 0.7; // …then played back at 70% of that
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -93,7 +94,9 @@ function audio() {
     limiter.ratio.value = 20;
     limiter.attack.value = 0.002;
     limiter.release.value = 0.08;
-    master.connect(clip).connect(limiter).connect(ctx.destination);
+    const output = ctx.createGain();
+    output.gain.value = OUTPUT;
+    master.connect(clip).connect(limiter).connect(output).connect(ctx.destination);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
