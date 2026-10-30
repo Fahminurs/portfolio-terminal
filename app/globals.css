@@ -213,8 +213,11 @@ dialog.man::backdrop { background: color-mix(in oklab, var(--color-bg) 84%, tran
 :root:not([data-plain]) .man-demo .man-demo-ghost { animation: man-ghost 1.3s 0.9s 2 both; }
 :root:not([data-plain]) .man-demo .man-demo-hint { animation: man-hint-out 1.3s 0.9s 2 both; }
 :root:not([data-plain]) .man-chev { animation: man-chev 1.6s steps(2, end) infinite; }
+/* touch: no hover — the photo develops when the card scrolls into view (RevealObserver sets
+   data-inview); without JS it just shows the photo */
 @media (hover: none) {
-  .dither-orig { --reveal: 100%; }
+  :root:not([data-reveal-ready]) .dither-orig { --reveal: 100%; }
+  .dither-reveal[data-inview] .dither-orig { --reveal: 100%; transition-duration: 640ms; }
 }
 
 /* ===== TUI layer ===== */

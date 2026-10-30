@@ -189,7 +189,7 @@ function Peek({ side, k, fig, onGo }: { side: "prev" | "next"; k: number; fig: F
       <span
         aria-hidden
         className={cn(
-          "peek-rail relative h-full w-3.5 overflow-hidden border-line-2 bg-bg transition-[width] duration-200 ease-[steps(6,end)] group-hover/peek:w-28 group-focus-visible/peek:w-28",
+          "peek-rail relative h-full w-3.5 overflow-hidden border-line-2 bg-bg transition-[width] duration-200 ease-[steps(6,end)] group-hover/peek:w-28 group-focus-visible/peek:w-28 group-active/peek:w-28",
           next ? "border-l" : "border-r",
         )}
       >

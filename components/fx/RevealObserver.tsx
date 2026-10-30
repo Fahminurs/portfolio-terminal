@@ -59,10 +59,37 @@ export function RevealObserver() {
       }),
     );
 
+    // Touch screens have no hover, so the dither → photo reveal (§6.7-I) plays when a card has
+    // scrolled well into view instead, and re-arms once it's nearly gone so it plays again.
+    // Always tracked (cheap); only the `(hover: none)` CSS acts on it, so a device that switches
+    // input mode — or an emulator that applies it after load — still gets it.
+    const develop = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const el = e.target as HTMLElement;
+          if (e.intersectionRatio >= 0.55) el.dataset.inview = "";
+          else if (e.intersectionRatio < 0.1) delete el.dataset.inview;
+        }
+      },
+      { threshold: [0, 0.1, 0.55] },
+    );
+    const developed = new WeakSet<Element>();
+    const watchDither = () =>
+      document.querySelectorAll(".dither-reveal").forEach((el) => {
+        if (developed.has(el)) return;
+        developed.add(el);
+        develop.observe(el);
+      });
+    const mo2 = new MutationObserver(watchDither);
+    watchDither();
+    mo2.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       show.disconnect();
       rearm.disconnect();
       mo.disconnect();
+      develop.disconnect();
+      mo2.disconnect();
       stop();
     };
   }, []);
