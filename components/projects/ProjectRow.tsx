@@ -10,8 +10,6 @@ type Props = {
   project: Project;
   index: number;
   media: React.ReactNode;
-  /** server-rendered details under the row (demo, recording, code); absent → none */
-  details?: React.ReactNode;
 };
 
 function StatusBadge({ status }: { status: Project["status"] }) {
@@ -31,7 +29,7 @@ function StatusBadge({ status }: { status: Project["status"] }) {
   );
 }
 
-export function ProjectRow({ project: p, index, media, details }: Props) {
+export function ProjectRow({ project: p, index, media }: Props) {
   // `open <slug>` from the command palette
   useEffect(() => {
     const on = (e: Event) => {
@@ -80,11 +78,6 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
           </div>
         </div>
       </div>
-      {details && (
-        <div className="tui-scan border-t border-dashed border-line-2 bg-surface px-4 py-5 md:px-6">
-          {details}
-        </div>
-      )}
     </article>
   );
 }

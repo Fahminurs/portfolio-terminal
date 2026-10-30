@@ -529,19 +529,15 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
             <h4 className="mt-5 font-bold text-fg">DESCRIPTION</h4>
             <p className="pl-6 font-prose text-[13px] leading-[1.65] text-fg-2">{man.summary}</p>
 
-            {man.stack.length > 0 && (
-              <>
-                <h4 className="mt-5 font-bold text-fg">STACK</h4>
-                <ul className="flex flex-wrap gap-1.5 pl-6 pt-1">
-                  {man.stack.map((s) => (
-                    <li key={s} className="flex items-center gap-1.5 border border-line px-1.5 text-[10.5px] leading-[18px] text-fg-2">
-                      <TechIcon name={s} className={langColor(s, "text-fg-3")} />
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            <h4 className="mt-5 font-bold text-fg">STACK</h4>
+            <ul className="flex flex-wrap gap-1.5 pl-6 pt-1">
+              {man.stack.map((s) => (
+                <li key={s} className="flex items-center gap-1.5 border border-line px-1.5 text-[10.5px] leading-[18px] text-fg-2">
+                  <TechIcon name={s} className={langColor(s, "text-fg-3")} />
+                  {s}
+                </li>
+              ))}
+            </ul>
 
             <h4 className="mt-5 font-bold text-fg">FIGURES</h4>
             <ol className="pl-4">

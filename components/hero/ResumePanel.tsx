@@ -12,6 +12,12 @@ export const RESUME_FF_EVENT = "fahmi:resume-ff";
 
 const PAGE_MS = 2600; // one page through the printer
 const BANDS = 44; // passes of the head per page
+const ZOOMS = [1, 1.5, 2, 3]; // reading zoom, × the fitted page width
+
+/** anything the printer can print: the CV, a certificate, a letter */
+export type Doc = { title: string; file: string; href: string; pages: { src: string; w: number; h: number }[] };
+
+const CV: Doc = { title: "CV Fahmi Nursafaat", file: resumeDoc.file, href: resumeDoc.pdf, pages: resumeDoc.pages };
 
 /**
  * Where page `t` (0..1) has got to. The head prints in bands and is bidirectional like a real
@@ -36,7 +42,7 @@ function clipFor(t: number) {
     : `polygon(0 0, 100% 0, 100% ${bottom}%, ${x} ${bottom}%, ${x} ${top}%, 0 ${top}%)`;
 }
 
-function Page({ src, w, h, n, t }: { src: string; w: number; h: number; n: number; t: number }) {
+function Page({ src, w, h, n, t, title }: { src: string; w: number; h: number; n: number; t: number; title: string }) {
   const printing = t > 0 && t < 1;
   const { head, top, bottom } = pass(t);
   return (
@@ -45,7 +51,7 @@ function Page({ src, w, h, n, t }: { src: string; w: number; h: number; n: numbe
         {/* eslint-disable-next-line @next/next/no-img-element -- a fixed rendered page; clip-path drives the reveal */}
         <img
           src={src}
-          alt={`CV Fahmi Nursafaat — halaman ${n}`}
+          alt={`${title} — halaman ${n}`}
           width={w}
           height={h}
           className="absolute inset-0 size-full"
@@ -69,17 +75,19 @@ function Page({ src, w, h, n, t }: { src: string; w: number; h: number; n: numbe
  * `view-resume` / `lpr resume`: the real CV goes through a dot-matrix printer, in a modal. Each
  * page sits on continuous-form paper (sprocket strips, perforation between pages) and is laid down
  * band by band by a head that sweeps both ways; the sheet scrolls along with the head like paper
- * feeding out. [f] form-feeds to the end, [d] downloads the original PDF, [q] / Esc closes.
+ * feeding out. [f] form-feeds to the end, [d] downloads the original, [-]/[+] zoom (ctrl+wheel too),
+ * [q] / Esc closes. The certificates in Pengalaman go through the same printer (DocPrinter).
  */
 export function ResumePanel() {
   const { resumeOpen, setResumeOpen } = useShell();
   if (!resumeOpen) return null;
-  return createPortal(<Printer onClose={() => setResumeOpen(false)} />, document.body);
+  return createPortal(<DocPrinter doc={CV} onClose={() => setResumeOpen(false)} />, document.body);
 }
 
-function Printer({ onClose }: { onClose: () => void }) {
+export function DocPrinter({ doc, onClose }: { doc: Doc; onClose: () => void }) {
   const calm = useCalm();
-  const n = resumeDoc.pages.length;
+  const n = doc.pages.length;
+  const [z, setZ] = useState(0); // index into ZOOMS
   const [t, setT] = useState(calm ? n : 0); // pages printed so far, 0..n
   const skip = useRef(false);
   const follow = useRef(true); // the sheet tracks the head until the reader scrolls it themselves
@@ -135,6 +143,42 @@ function Printer({ onClose }: { onClose: () => void }) {
     el.scrollTop = Math.max(0, y - el.clientHeight * 0.6);
   }, [t, done]);
 
+  // zoom about the middle of what's in view, so the line being read stays put
+  const zoomTo = (next: number) => {
+    const el = sheet.current;
+    const i = Math.max(0, Math.min(ZOOMS.length - 1, next));
+    if (!el) return setZ(i);
+    const cy = (el.scrollTop + el.clientHeight / 2) / el.scrollHeight;
+    const cx = (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth;
+    follow.current = false;
+    setZ(i);
+    requestAnimationFrame(() => {
+      el.scrollTop = cy * el.scrollHeight - el.clientHeight / 2;
+      el.scrollLeft = cx * el.scrollWidth - el.clientWidth / 2;
+    });
+  };
+  // listeners set up once reach the current zoom through this
+  const zoomBy = useRef((d: number) => zoomTo(z + d));
+  useEffect(() => {
+    zoomBy.current = (d: number) => zoomTo(z + d);
+  });
+
+  // ctrl+wheel (and a trackpad pinch, which arrives as one) zooms the sheet instead of the page
+  useEffect(() => {
+    const el = sheet.current;
+    if (!el) return;
+    let at = 0;
+    const wheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      if (performance.now() - at < 180) return;
+      at = performance.now();
+      zoomBy.current(e.deltaY < 0 ? 1 : -1);
+    };
+    el.addEventListener("wheel", wheel, { passive: false });
+    return () => el.removeEventListener("wheel", wheel);
+  }, []);
+
   // keys belong to the printer while it's open (shell digits, "/", "?" stay out)
   useEffect(() => {
     const ff = () => (skip.current = true);
@@ -144,6 +188,9 @@ function Printer({ onClose }: { onClose: () => void }) {
       if (e.key === "f") ff();
       else if (e.key === "d") download.current?.click();
       else if (e.key === "q" || e.key === "Escape") onClose();
+      else if (e.key === "=" || e.key === "+") zoomBy.current(1);
+      else if (e.key === "-") zoomBy.current(-1);
+      else if (e.key === "0") zoomBy.current(-ZOOMS.length);
       else return;
       e.preventDefault();
     };
@@ -160,8 +207,7 @@ function Printer({ onClose }: { onClose: () => void }) {
   return (
     <dialog
       ref={dialog}
-      id="resume"
-      aria-label="Resume Fahmi Nursafaat"
+      aria-label={doc.title}
       onCancel={(e) => {
         e.preventDefault();
         onClose();
@@ -174,7 +220,7 @@ function Printer({ onClose }: { onClose: () => void }) {
         style={{ "--tui-bg": "var(--color-surface)" } as React.CSSProperties}
       >
         <span className="tui-title left-3 max-w-[calc(100%-7rem)] truncate text-fg-2">
-          ╡ <span className="text-accent">lpr</span> {resumeDoc.file} ╞
+          ╡ <span className="text-accent">lpr</span> {doc.file} ╞
         </span>
         <span className="tui-title right-3">
           <button autoFocus onClick={onClose} className="text-fg-3 transition-colors hover:text-accent">
@@ -192,13 +238,24 @@ function Printer({ onClose }: { onClose: () => void }) {
             </span>
           </span>
           <span className="flex items-center gap-3">
+            <span className="flex items-center gap-1 tabular-nums" aria-label="zoom">
+              <button onClick={() => zoomTo(z - 1)} disabled={z === 0} aria-label="perkecil" className="px-1 text-fg-3 transition-colors hover:text-accent disabled:opacity-30">
+                [<span className="text-accent">-</span>]
+              </button>
+              <button onClick={() => zoomTo(0)} title="pas lebar (0)" className="w-[4ch] text-center text-fg-2 transition-colors hover:text-accent">
+                {ZOOMS[z] * 100}%
+              </button>
+              <button onClick={() => zoomTo(z + 1)} disabled={z === ZOOMS.length - 1} aria-label="perbesar" className="px-1 text-fg-3 transition-colors hover:text-accent disabled:opacity-30">
+                [<span className="text-accent">+</span>]
+              </button>
+            </span>
             {!done && (
               <button onClick={() => (skip.current = true)} className="text-fg-3 transition-colors hover:text-accent">
                 [<span className="text-accent">f</span>] form feed
               </button>
             )}
-            <a ref={download} href={resumeDoc.pdf} download={resumeDoc.file} className="text-fg-3 transition-colors hover:text-accent">
-              [<span className="text-accent">d</span>] unduh PDF
+            <a ref={download} href={doc.href} download={doc.file} className="text-fg-3 transition-colors hover:text-accent">
+              [<span className="text-accent">d</span>] unduh {doc.file.split(".").pop()?.toUpperCase()}
             </a>
           </span>
         </div>
@@ -206,16 +263,16 @@ function Printer({ onClose }: { onClose: () => void }) {
         {/* the sheet, scrolling along as it feeds */}
         <div
           ref={sheet}
-          className="min-h-0 flex-1 overflow-y-auto bg-bg px-2 pb-8 sm:px-6"
+          className="min-h-0 flex-1 overflow-auto bg-bg px-2 pb-8 sm:px-6"
           onWheel={() => (follow.current = false)}
           onTouchStart={() => (follow.current = false)}
         >
-          <div className="mx-auto max-w-[820px]">
+          <div className="mx-auto" style={{ width: `calc(min(820px, 100%) * ${ZOOMS[z]})` }}>
             {/* the slot the paper comes out of */}
             <div aria-hidden className="resume-slot sticky top-0 z-10 mx-1 h-3 rounded-b-sm border border-t-0 border-line-2 bg-raised" />
             <div className="flex flex-col">
-              {resumeDoc.pages.map((p, i) => (
-                <Page key={p.src} {...p} n={i + 1} t={t - i} />
+              {doc.pages.map((p, i) => (
+                <Page key={p.src} {...p} n={i + 1} t={t - i} title={doc.title} />
               ))}
             </div>
           </div>

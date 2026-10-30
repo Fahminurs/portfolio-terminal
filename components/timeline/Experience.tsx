@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { experience, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
-import { NoSignal } from "@/components/ui/NoSignal";
 import { DitherReveal } from "@/components/fx/DitherReveal";
-import { ManTrigger } from "@/components/projects/ManViewer";
+import { DocPrinter } from "@/components/hero/ResumePanel";
 import { useCalm } from "@/lib/calm";
 import { useVisits } from "@/lib/visits";
 import { cn } from "@/lib/utils";
@@ -23,8 +23,33 @@ const TAG_COLOR: Record<string, string> = {
 /**
  * `tail -f`: lines arrive from the bottom one by one every time the log comes into view (§5.7).
  * Each line's proof (certificate, internship grades) sits beside it as a dithered card — on phones
- * too, under the text — and opens in the same man-page viewer as the projects.
+ * too, under the text — and goes through the same dot-matrix printer as the CV: every page, zoomable.
  */
+function DocCard({ doc, alt }: { doc: (typeof experience)[number]["doc"]; alt: string }) {
+  const [open, setOpen] = useState(false);
+  const n = doc.pages.length;
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Buka ${doc.title} (${n} halaman)`}
+        className="man-trigger group relative block w-full max-w-sm cursor-zoom-in text-left md:max-w-none"
+      >
+        <DitherReveal src={doc.card} dither={doc.dither} alt={alt} label={doc.file} focusable={false} className="aspect-[4/3] w-full" />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-2 right-2 z-10 border border-line-2 bg-bg px-1.5 py-px text-[10px] text-fg-3 transition-colors group-hover:border-accent group-hover:text-accent group-focus-visible:border-accent group-focus-visible:text-accent"
+        >
+          lpr · {n} hal ↵
+        </span>
+      </button>
+      {open && createPortal(<DocPrinter doc={doc} onClose={() => setOpen(false)} />, document.body)}
+    </>
+  );
+}
+
 export function Experience() {
   const ref = useRef<HTMLOListElement>(null);
   const { visits } = useVisits(ref, "0px 0px -20% 0px");
@@ -57,22 +82,7 @@ export function Experience() {
               <p className="mt-0.5 text-[12px] text-fg-2">{e.org}</p>
               <p className="mt-2 max-w-[62ch] font-prose text-[14px] leading-[1.65] text-fg-2">{e.desc}</p>
             </div>
-            {e.doc ? (
-              <ManTrigger
-                man={{ slug: e.slug, title: e.title, category: `${e.tag} — ${e.org}`, period: e.period, summary: e.desc, stack: [], gallery: e.gallery }}
-              >
-                <DitherReveal
-                  src={e.doc.src}
-                  dither={e.doc.dither}
-                  alt={`${e.title} — ${e.org}`}
-                  label={e.doc.label}
-                  focusable={false}
-                  className="aspect-[4/3] w-full max-w-sm md:max-w-none"
-                />
-              </ManTrigger>
-            ) : (
-              <NoSignal label="foto.jpg" className="hidden min-h-24 md:flex" />
-            )}
+            <DocCard doc={e.doc} alt={`${e.title} — ${e.org}`} />
           </motion.li>
         ))}
       </ol>
