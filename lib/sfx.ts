@@ -32,11 +32,13 @@ export type Sfx =
 
 const KEY = "fahmi:sfx";
 const CHANGE = "fahmi:sfx-change";
+const VOL_KEY = "fahmi:vol";
 const DRIVE = 7; // into a soft clipper + limiter: as loud as the speaker goes, no digital clipping
-const OUTPUT = 0.7; // …then played back at 70% of that
+export const VOL_STEPS = 10; // the volume knob clicks in tenths; full (the max above) by default
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
+let output: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
 let unlocked = false;
 const last = new Map<string, number>();
@@ -62,6 +64,43 @@ export function setSfxOn(on: boolean) {
     unlocked = true; // the toggle click itself is a gesture
     play("ok");
   }
+}
+
+/** volume level in steps, 0…VOL_STEPS */
+export function sfxVolume() {
+  try {
+    const v = Number(localStorage.getItem(VOL_KEY));
+    return localStorage.getItem(VOL_KEY) === null || !Number.isFinite(v) ? VOL_STEPS : Math.max(0, Math.min(VOL_STEPS, Math.round(v)));
+  } catch {
+    return VOL_STEPS;
+  }
+}
+
+// ears hear loudness roughly logarithmically: square the level so each step sounds even
+const gainFor = (step: number) => (step / VOL_STEPS) ** 2;
+
+export function setSfxVolume(step: number) {
+  const v = Math.max(0, Math.min(VOL_STEPS, Math.round(step)));
+  if (v === sfxVolume()) return;
+  try {
+    localStorage.setItem(VOL_KEY, String(v));
+  } catch {}
+  if (ctx && output) output.gain.setTargetAtTime(gainFor(v), ctx.currentTime, 0.015);
+  window.dispatchEvent(new Event(CHANGE));
+  unlocked = true; // turning the knob is a gesture
+  play("tick"); // so you hear the new level
+}
+
+/** React view of the volume */
+export function useSfxVolume() {
+  return useSyncExternalStore(
+    (cb) => {
+      window.addEventListener(CHANGE, cb);
+      return () => window.removeEventListener(CHANGE, cb);
+    },
+    sfxVolume,
+    () => VOL_STEPS,
+  );
 }
 
 /** React view of the toggle */
@@ -94,8 +133,8 @@ function audio() {
     limiter.ratio.value = 20;
     limiter.attack.value = 0.002;
     limiter.release.value = 0.08;
-    const output = ctx.createGain();
-    output.gain.value = OUTPUT;
+    output = ctx.createGain();
+    output.gain.value = gainFor(sfxVolume());
     master.connect(clip).connect(limiter).connect(output).connect(ctx.destination);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
