@@ -53,7 +53,7 @@ export const viewport: Viewport = {
 
 // runs before paint: mark JS (scan-in reveals; auto-revoked after 4s if the reveal observer never boots),
 // restore theme + plain mode (?plain=1 or saved) + skip boot screen if already seen
-const preload = `try{var d=document.documentElement;d.dataset.js='1';setTimeout(function(){if(!d.dataset.revealReady)delete d.dataset.js},4000);var t=localStorage.getItem('fahmi:theme');if(t&&t!=='amber')d.dataset.theme=t;var p=new URLSearchParams(location.search).get('plain');if(p==='1')localStorage.setItem('fahmi:plain','1');if(p==='0')localStorage.removeItem('fahmi:plain');if(localStorage.getItem('fahmi:plain'))d.dataset.plain='1';if(d.dataset.plain||sessionStorage.getItem('fahmi:booted')||matchMedia('(prefers-reduced-motion: reduce)').matches)d.dataset.booted='1'}catch(e){}`;
+const preload = `try{var d=document.documentElement;d.dataset.js='1';setTimeout(function(){if(!d.dataset.revealReady)delete d.dataset.js},4000);var t=localStorage.getItem('fahmi:theme');if(t&&t!=='amber')d.dataset.theme=t;var p=new URLSearchParams(location.search).get('plain');if(p==='1')localStorage.setItem('fahmi:plain','1');if(p==='0')localStorage.removeItem('fahmi:plain');if(localStorage.getItem('fahmi:plain'))d.dataset.plain='1';if(d.dataset.plain||localStorage.getItem('fahmi:sfx')==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches)d.dataset.booted='1'}catch(e){}`;
 
 const jsonLd = {
   "@context": "https://schema.org",

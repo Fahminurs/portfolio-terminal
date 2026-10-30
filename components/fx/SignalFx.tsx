@@ -7,7 +7,7 @@ import { play } from "@/lib/sfx";
 /**
  * The machine on the other end has a bad signal. One place for the ambient interference:
  * - `.glitch` headings tear into red/cyan slices when they come into view, and now and then at random
- * - a VHS tracking band rolls down the screen every so often, the page judders under it
+ * - every so often the picture loses tracking: the page judders with a tape hum
  * - scrolling very fast tears the headings (html[data-tear])
  * - a tap / click spits a few phosphor pixels where it landed
  * - left idle, the carrier drops: a burst of static and a line from the kernel, then it reattaches
@@ -34,7 +34,6 @@ function pulse(el: Element, attr: string, ms: number) {
 
 export function SignalFx() {
   const calm = useCalm();
-  const tracking = useRef<HTMLDivElement>(null);
   const stat = useRef<HTMLDivElement>(null);
   const [ghost, setGhost] = useState<string | null>(null);
 
@@ -88,10 +87,9 @@ export function SignalFx() {
     };
     later(burst, rand(3000, 6000));
 
-    // --- VHS tracking band ----------------------------------------------------------------
+    // --- lost tracking: judder ----------------------------------------------------------------
     const roll = () => {
-      if (!document.hidden && tracking.current) {
-        pulse(tracking.current, "data-run", 950);
+      if (!document.hidden) {
         pulse(html, "data-tracking", 950);
         play("tracking");
       }
@@ -238,7 +236,6 @@ export function SignalFx() {
   return (
     <div aria-hidden className="print:hidden">
       <div className="signal-crt" />
-      <div ref={tracking} className="signal-tracking" />
       <div ref={stat} className="signal-static" />
       {ghost && (
         <p className="signal-ghost" key={ghost}>

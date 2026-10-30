@@ -31,7 +31,7 @@ export type Sfx =
 
 const KEY = "fahmi:sfx";
 const CHANGE = "fahmi:sfx-change";
-const VOLUME = 1.6; // driven into a limiter: as loud as it gets without clipping
+const DRIVE = 7; // into a soft clipper + limiter: as loud as the speaker goes, no digital clipping
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -79,14 +79,20 @@ function audio() {
     const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     ctx = new AC();
     master = ctx.createGain();
-    master.gain.value = VOLUME;
+    master.gain.value = DRIVE;
+    // soft clip: short blips get fat instead of thin, and nothing can exceed full scale
+    const clip = ctx.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) curve[i] = Math.tanh(((i / (curve.length - 1)) * 2 - 1) * 2.2);
+    clip.curve = curve;
+    clip.oversample = "2x";
     const limiter = ctx.createDynamicsCompressor();
-    limiter.threshold.value = -6;
+    limiter.threshold.value = -0.3;
     limiter.knee.value = 0;
     limiter.ratio.value = 20;
     limiter.attack.value = 0.002;
     limiter.release.value = 0.08;
-    master.connect(limiter).connect(ctx.destination);
+    master.connect(clip).connect(limiter).connect(ctx.destination);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -95,15 +101,17 @@ function audio() {
   return ctx;
 }
 
-// first gesture unlocks audio for the rest of the visit
-if (typeof window !== "undefined") {
-  const unlock = () => {
-    unlocked = true;
-    if (sfxOn() && !calm()) audio();
-  };
-  window.addEventListener("pointerdown", unlock, { once: true, capture: true });
-  window.addEventListener("keydown", unlock, { once: true, capture: true });
+// first gesture unlocks audio. A phone's touch only counts as one on pointerup / touchend / click,
+// not pointerdown, so keep listening on all of them until the context is actually running.
+const GESTURES = ["pointerdown", "pointerup", "touchend", "click", "keydown"] as const;
+/** call from inside a user gesture handler */
+export function unlockSfx() {
+  unlocked = true;
+  if (!sfxOn() || calm()) return;
+  const c = audio();
+  if (c.state === "running") GESTURES.forEach((g) => window.removeEventListener(g, unlockSfx, true));
 }
+if (typeof window !== "undefined") GESTURES.forEach((g) => window.addEventListener(g, unlockSfx, true));
 
 function tone(c: AudioContext, at: number, f0: number, dur: number, type: OscillatorType, gain: number, f1 = f0) {
   const o = c.createOscillator();
@@ -162,11 +170,11 @@ export function play(name: Sfx, gap = 0) {
   const t = c.currentTime + 0.005;
   switch (name) {
     case "key": // mechanical key: a dry click with a little body
-      tone(c, t, 1900, 0.014, "square", 0.22, 1100);
+      tone(c, t, 1900, 0.025, "square", 0.25, 1100);
       noise(c, t, 0.018, 0.18, "highpass", 3200);
       break;
     case "tick":
-      tone(c, t, 2600, 0.008, "square", 0.08);
+      tone(c, t, 2600, 0.018, "square", 0.12);
       break;
     case "ok":
       tone(c, t, 880, 0.06, "square", 0.14);
@@ -190,7 +198,7 @@ export function play(name: Sfx, gap = 0) {
       stutter(c, t, 2 + Math.floor(Math.random() * 2), 0.22, 600, 4800);
       break;
     case "hover": // the pointer lands on something live
-      tone(c, t, 3400 + Math.random() * 400, 0.006, "square", 0.05);
+      tone(c, t, 3400 + Math.random() * 400, 0.016, "square", 0.08);
       break;
     case "click": // a heavier relay click than a key
       tone(c, t, 420, 0.03, "square", 0.24, 140);

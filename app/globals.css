@@ -275,25 +275,7 @@ dialog.man::backdrop { background: color-mix(in oklab, var(--color-bg) 84%, tran
   82% { opacity: 0.34; }
 }
 
-/* VHS tracking band rolling down, the page judders under it */
-.signal-tracking {
-  position: fixed;
-  inset-inline: 0;
-  top: -16vh;
-  z-index: 59;
-  height: 14vh;
-  pointer-events: none;
-  opacity: 0;
-  background:
-    linear-gradient(to bottom, transparent, color-mix(in oklab, var(--accent) 10%, transparent) 35%, rgba(228, 225, 214, 0.14) 50%, color-mix(in oklab, var(--accent) 10%, transparent) 65%, transparent),
-    var(--noise) 0 0 / 160px 160px;
-  mix-blend-mode: screen;
-}
-.signal-tracking[data-run] { animation: tracking 950ms steps(19) both; }
-@keyframes tracking {
-  0% { opacity: 0.32; transform: translateY(0); background-position: 0 0, 0 0; }
-  100% { opacity: 0.32; transform: translateY(135vh); background-position: 0 0, 80px 40px; }
-}
+/* lost tracking: the page judders */
 html[data-tracking] main { animation: judder 950ms steps(1) both; }
 @keyframes judder {
   0%, 100% { transform: none; }
@@ -430,7 +412,7 @@ html[data-tear] .glitch::after { opacity: 0.75; transform: translateX(3px); clip
   100% { text-shadow: none; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .signal-crt, .signal-tracking, .signal-static, .signal-spit, .signal-ghost { display: none; }
+  .signal-crt, .signal-static, .signal-spit, .signal-ghost { display: none; }
   .glitch::before, .glitch::after, .man-frame::after { display: none; }
 }
 
@@ -524,6 +506,10 @@ article.stack-hit h3::after { content: "  ← uses"; font-family: var(--font-mon
   scroll-behavior: auto !important;
 }
 :root[data-plain] { scroll-behavior: auto; }
+
+/* the login prompt on the boot screen pulses until it's answered */
+.boot-enter { animation: boot-enter 1.1s steps(2, jump-none) infinite; }
+@keyframes boot-enter { 50% { opacity: 0.45; } }
 
 /* boot screen is useless once booted */
 :root[data-booted] .boot-screen { display: none; }
