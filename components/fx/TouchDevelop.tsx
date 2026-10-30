@@ -4,15 +4,16 @@ import { useEffect } from "react";
 import { useCalm } from "@/lib/calm";
 
 const HOLD_MS = 650; // finger down this long → fully developed
-const STEPS = 12; // grows in hard steps, like the rest of the site's scans
+const SINK_MS = 420; // let go → back to dither
+const STEPS = 12; // grows and shrinks in hard steps, like the rest of the site's scans
 const SLOP = 10; // px of travel that means "this is a scroll", not a hold
 
 /**
  * Touch (phones, tablets) twin of DitherReveal's hover: hold a card and the photo develops out
  * of the 1-bit dither from under the finger — a circle that grows in steps, with a progress ring
- * round the fingertip. Hold to the end: it stays developed (with a short buzz); let go early: it
- * sinks back. A quick tap is left alone (it opens the gallery), moving the finger cancels (it's a
- * scroll), and a card that leaves the screen goes back to dither so it can be developed again.
+ * round the fingertip and a short buzz once it's whole. It's only developed while held: let go
+ * (at any point) and it shrinks back into the same spot, step by step, to dither. A quick tap is
+ * left alone (it opens the gallery) and moving the finger cancels (it's a scroll).
  * Drives --rx / --ry / --rr on `.dither-reveal`; the CSS is under `(hover: none)` in globals.css.
  */
 export function TouchDevelop() {
@@ -20,6 +21,7 @@ export function TouchDevelop() {
 
   useEffect(() => {
     const touchUI = matchMedia("(hover: none)"); // checked per touch: a tablet can gain/lose a mouse
+    const sinking = new WeakMap<HTMLElement, number>(); // card → its running shrink animation
     let card: HTMLElement | null = null;
     let ring: HTMLElement | null = null;
     let raf = 0;
@@ -29,45 +31,56 @@ export function TouchDevelop() {
     let p = 0;
     let swallowClick = false;
 
-    const radius = (v: number) => card?.style.setProperty("--rr", `${v * max}px`);
     const dropRing = () => {
       ring?.remove();
       ring = null;
     };
 
-    const finish = () => {
-      if (!card) return;
-      cancelAnimationFrame(raf);
+    // fully developed while still held: the ring has done its job; buzz once
+    const whole = () => {
       dropRing();
-      card.dataset.developed = "";
-      delete card.dataset.holding;
       navigator.vibrate?.(12);
       swallowClick = true; // the release after a hold isn't a tap
-      card = null;
     };
 
+    // let go / scrolled: shrink back into the finger's spot in steps, then it's dither again
     const sink = () => {
       if (!card) return;
       cancelAnimationFrame(raf);
       dropRing();
       const el = card;
       const from = p;
+      const r = max;
       card = null;
       if (from > 0.2) swallowClick = true;
+      if (calm || from <= 0) {
+        el.style.setProperty("--rr", "0px");
+        delete el.dataset.holding;
+        return;
+      }
       const t0 = performance.now();
+      const dur = SINK_MS * from;
       const back = (now: number) => {
-        const k = Math.max(0, 1 - (now - t0) / 180);
-        el.style.setProperty("--rr", `${from * k * max}px`);
-        if (k > 0) requestAnimationFrame(back);
-        else delete el.dataset.holding;
+        const k = Math.max(0, Math.floor((1 - (now - t0) / dur) * STEPS) / STEPS);
+        el.style.setProperty("--rr", `${from * k * r}px`);
+        if (k > 0) sinking.set(el, requestAnimationFrame(back));
+        else {
+          sinking.delete(el);
+          delete el.dataset.holding;
+        }
       };
-      requestAnimationFrame(back);
+      sinking.set(el, requestAnimationFrame(back));
     };
 
     const down = (e: PointerEvent) => {
       if (e.pointerType === "mouse" || !touchUI.matches) return;
       const el = (e.target as Element | null)?.closest<HTMLElement>(".dither-reveal");
-      if (!el || el.hasAttribute("data-developed")) return;
+      if (!el) return;
+      const still = sinking.get(el);
+      if (still) {
+        cancelAnimationFrame(still);
+        sinking.delete(el);
+      }
       const r = el.getBoundingClientRect();
       const x = e.clientX - r.left;
       const y = e.clientY - r.top;
@@ -85,17 +98,14 @@ export function TouchDevelop() {
       ring.style.left = `${x}px`;
       ring.style.top = `${y}px`;
       el.append(ring);
-      if (calm) {
-        raf = window.setTimeout(finish, HOLD_MS) as unknown as number;
-        return;
-      }
       const t0 = performance.now();
       const grow = (now: number) => {
-        if (!card) return;
-        p = Math.min(1, Math.ceil(((now - t0) / HOLD_MS) * STEPS) / STEPS);
-        radius(p);
-        ring?.style.setProperty("--p", String(p));
-        if (p >= 1) finish();
+        if (card !== el) return;
+        const t = (now - t0) / HOLD_MS;
+        p = calm ? (t >= 1 ? 1 : 0) : Math.min(1, Math.ceil(t * STEPS) / STEPS);
+        el.style.setProperty("--rr", `${p * max}px`);
+        ring?.style.setProperty("--p", String(Math.min(1, t)));
+        if (p >= 1) whole();
         else raf = requestAnimationFrame(grow);
       };
       raf = requestAnimationFrame(grow);
@@ -117,21 +127,6 @@ export function TouchDevelop() {
       if ((e.target as Element | null)?.closest(".dither-reveal")) e.preventDefault();
     };
 
-    // back to dither once a developed card is fully off screen, so it can be developed again
-    const io = new IntersectionObserver((entries) => {
-      for (const en of entries) if (!en.isIntersecting) delete (en.target as HTMLElement).dataset.developed;
-    });
-    const seen = new WeakSet<Element>();
-    const watch = () =>
-      document.querySelectorAll(".dither-reveal").forEach((el) => {
-        if (seen.has(el)) return;
-        seen.add(el);
-        io.observe(el);
-      });
-    watch();
-    const mo = new MutationObserver(watch);
-    mo.observe(document.body, { childList: true, subtree: true });
-
     document.addEventListener("pointerdown", down, { passive: true });
     document.addEventListener("pointermove", move, { passive: true });
     document.addEventListener("pointerup", up);
@@ -140,8 +135,6 @@ export function TouchDevelop() {
     document.addEventListener("contextmenu", menu);
     return () => {
       cancelAnimationFrame(raf);
-      io.disconnect();
-      mo.disconnect();
       document.removeEventListener("pointerdown", down);
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", up);
