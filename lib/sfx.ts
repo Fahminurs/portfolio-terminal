@@ -18,6 +18,7 @@ export type Sfx =
   | "tear"
   | "zap"
   | "hover"
+  | "charge"
   | "click"
   | "tracking"
   | "static"
@@ -264,6 +265,10 @@ export function play(name: Sfx, gap = 0) {
       break;
     case "hover": // the pointer lands on something live
       tone(c, t, 3400 + Math.random() * 400, 0.016, "square", 0.08);
+      break;
+    case "charge": // a glitchy button: the same blip as a link, then the wire arcs
+      tone(c, t, 3400 + Math.random() * 400, 0.016, "square", 0.08);
+      arc(c, t + 0.04, 0.16 + Math.random() * 0.1, 0.4);
       break;
     case "click": // a heavier relay click than a key
       tone(c, t, 420, 0.03, "square", 0.24, 140);
