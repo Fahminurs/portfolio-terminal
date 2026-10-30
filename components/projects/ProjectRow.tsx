@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect } from "react";
 import type { Project } from "@/content/data";
 import { cn, OPEN_PROJECT_EVENT } from "@/lib/utils";
 import { langColor } from "@/lib/lang";
@@ -10,7 +10,7 @@ type Props = {
   project: Project;
   index: number;
   media: React.ReactNode;
-  /** server-rendered expand body; absent → row isn't expandable */
+  /** server-rendered details under the row (demo, recording, code); absent → none */
   details?: React.ReactNode;
 };
 
@@ -32,19 +32,15 @@ function StatusBadge({ status }: { status: Project["status"] }) {
 }
 
 export function ProjectRow({ project: p, index, media, details }: Props) {
-  const [open, setOpen] = useState(false);
-  const bodyId = useId();
-
   // `open <slug>` from the command palette
   useEffect(() => {
     const on = (e: Event) => {
       if ((e as CustomEvent<string>).detail !== p.slug) return;
-      if (details) setOpen(true);
       document.getElementById(`p-${p.slug}`)?.scrollIntoView({ block: "start" });
     };
     window.addEventListener(OPEN_PROJECT_EVENT, on);
     return () => window.removeEventListener(OPEN_PROJECT_EVENT, on);
-  }, [p.slug, details]);
+  }, [p.slug]);
 
   const flip = index % 2 === 1;
 
@@ -71,17 +67,6 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
             ))}
           </ul>
           <div className="mt-auto flex flex-wrap gap-2 pt-2 text-[11.5px]">
-            {details && (
-              <button
-                onClick={() => setOpen(!open)}
-                aria-expanded={open}
-                aria-controls={bodyId}
-                className="border border-line-2 px-3 py-1.5 text-fg-2 transition-colors hover:border-accent hover:text-accent"
-              >
-                <span className="text-fg-3">$ </span>
-                {open ? "collapse" : `inspect ${p.slug}`}
-              </button>
-            )}
             {p.repo && (
               <a
                 href={p.repo}
@@ -96,7 +81,7 @@ export function ProjectRow({ project: p, index, media, details }: Props) {
         </div>
       </div>
       {details && (
-        <div id={bodyId} hidden={!open} className="tui-scan border-t border-dashed border-line-2 bg-surface px-4 py-5 md:px-6">
+        <div className="tui-scan border-t border-dashed border-line-2 bg-surface px-4 py-5 md:px-6">
           {details}
         </div>
       )}

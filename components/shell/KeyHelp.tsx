@@ -9,7 +9,7 @@ const KEYS: [string, string][] = [
   ["/  ·  Ctrl K", "cari & jalankan command"],
   ["0 – 7", "lompat ke bab"],
   ["j / k", "pindah projek (▶ kursor)"],
-  ["Enter", "inspect projek terpilih"],
+  ["Enter", "buka galeri projek terpilih"],
   ["← / →", "geser filter Archive (saat fokus)"],
   ["Tab · ↑ ↓", "lengkapi / riwayat di prompt"],
   ["q · Esc", "tutup dialog, resume, kursor"],

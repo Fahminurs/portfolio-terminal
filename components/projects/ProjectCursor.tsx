@@ -11,7 +11,7 @@ function isTyping(e: KeyboardEvent) {
 
 /**
  * TUI list cursor for Projects: j/k (or ↑/↓ while inside the list) moves a ▶ selection bar,
- * Enter toggles `inspect`. Mouse hover moves the cursor too. Renders nothing.
+ * Enter opens the project's gallery. Mouse hover moves the cursor too. Renders nothing.
  */
 export function ProjectCursor() {
   useEffect(() => {
@@ -54,7 +54,7 @@ export function ProjectCursor() {
         set(Math.max(0, Math.min(rows().length - 1, next)), true);
         e.preventDefault();
       } else if (k === "Enter" && i >= 0 && document.activeElement === document.body) {
-        rows()[i].querySelector<HTMLButtonElement>("button[aria-controls]")?.click();
+        rows()[i].querySelector<HTMLButtonElement>("button[aria-haspopup=dialog]")?.click();
         e.preventDefault();
       } else if (k === "Escape" && i >= 0) {
         set(-1, false);
