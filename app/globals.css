@@ -226,6 +226,19 @@ dialog.man::backdrop { background: color-mix(in oklab, var(--color-bg) 84%, tran
   .touch-hint { display: flex; }
   .dither-reveal[data-holding] .touch-hint { display: none; }
 }
+/* countdown while a developed photo stays up after release (TouchDevelop DWELL_MS) */
+@keyframes develop-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.develop-timer {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 2;
+  height: 3px;
+  background: var(--accent);
+  transform-origin: left;
+  pointer-events: none;
+  animation: develop-timer var(--dwell, 4s) linear forwards;
+}
 /* progress ring around the finger while holding */
 .develop-ring {
   position: absolute;
