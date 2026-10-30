@@ -34,7 +34,7 @@ export function TypeLine({ text, className, delay = 0, cps = 40, cursor = false 
       id = window.setInterval(() => {
         i++;
         setN(i);
-        play("tick", 35);
+        play("key", 30, true);
         if (i >= text.length) window.clearInterval(id);
       }, 1000 / cps);
     }, delay);

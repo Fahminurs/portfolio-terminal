@@ -58,7 +58,7 @@ export function SignalFx() {
             if (!visible.has(e.target))
               later(() => {
                 pulse(e.target, "data-glitch", 420);
-                play("glitch", 150);
+                play("glitch", 150, true);
               }, rand(150, 500));
             visible.add(e.target);
           } else visible.delete(e.target);
@@ -107,7 +107,6 @@ export function SignalFx() {
       lastY = window.scrollY;
       lastT = now;
       if (v > 3.2) {
-        if (!("tear" in html.dataset)) play("tear", 350);
         html.dataset.tear = "";
         clearTimeout(tearOff);
         tearOff = window.setTimeout(() => delete html.dataset.tear, 160);
@@ -188,20 +187,6 @@ export function SignalFx() {
       if (e.target instanceof HTMLDialogElement) play("off", 200);
     };
 
-    // --- each section that scrolls into view gets a blip ------------------------------------
-    let lastSection = "";
-    const sio = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting || e.target.id === lastSection) continue;
-          if (lastSection) play("blip", 300);
-          lastSection = e.target.id;
-        }
-      },
-      { rootMargin: "-45% 0px -50% 0px" },
-    );
-    document.querySelectorAll("section[id]").forEach((s) => sio.observe(s));
-
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("scroll", wake, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
@@ -213,7 +198,6 @@ export function SignalFx() {
     document.addEventListener("close", onClose, true);
     return () => {
       io.disconnect();
-      sio.disconnect();
       document.removeEventListener("pointerover", onOver);
       document.removeEventListener("close", onClose, true);
       mo.disconnect();

@@ -119,14 +119,14 @@ export function Statusline() {
                       aria-current={on ? "true" : undefined}
                       className={cn(
                         "flex min-h-11 w-full items-center gap-2.5 border-b border-line px-4 text-left text-[13px]",
-                        on ? "tui-sel" : "text-fg-2 active:bg-raised",
+                        on ? "tui-sel" : "group text-fg-2 hover:bg-accent/15 hover:text-fg focus-visible:bg-accent/15 focus-visible:text-fg active:bg-accent/25",
                       )}
                     >
                       {/* fixed columns: cursor marker, then number — never glued together */}
                       <span aria-hidden className="w-3 shrink-0 text-center text-[11px]">
-                        {on ? "▶" : ""}
+                        {on ? "▶" : <span className="text-accent opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100">▷</span>}
                       </span>
-                      <span className={cn("w-4 shrink-0 tabular-nums", on ? "font-bold" : "text-fg-3")}>{s.n}</span>
+                      <span className={cn("w-4 shrink-0 tabular-nums", on ? "font-bold" : "text-fg-3 group-hover:text-accent")}>{s.n}</span>
                       <span className="flex-1">
                         {s.label}
                         {on && "*"}

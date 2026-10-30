@@ -27,7 +27,8 @@ export type Sfx =
   | "blip"
   | "probe"
   | "whole"
-  | "sink";
+  | "sink"
+  | "decrypt";
 
 const KEY = "fahmi:sfx";
 const CHANGE = "fahmi:sfx-change";
@@ -158,11 +159,20 @@ function stutter(c: AudioContext, at: number, slices: number, gain: number, low 
   return t;
 }
 
+// scrolling is quiet: whatever reveals itself on the way stays silent until the page settles,
+// except a section's own title loading in (its command typing, its name decrypting and glitching),
+// which asks for it with `whileScrolling`
+const SCROLL_QUIET_MS = 350;
+let scrolledAt = -Infinity;
+if (typeof window !== "undefined")
+  window.addEventListener("scroll", () => (scrolledAt = performance.now()), { passive: true }); // the page, not inner scrollers
+const scrolling = () => performance.now() - scrolledAt < SCROLL_QUIET_MS;
+
 const can = () => unlocked && sfxOn() && !calm();
 
 /** one-shot; `gap` ms throttles repeats of the same sound */
-export function play(name: Sfx, gap = 0) {
-  if (!can()) return;
+export function play(name: Sfx, gap = 0, whileScrolling = false) {
+  if (!can() || (scrolling() && !whileScrolling)) return;
   const now = performance.now();
   if (gap && now - (last.get(name) ?? 0) < gap) return;
   last.set(name, now);
@@ -236,6 +246,9 @@ export function play(name: Sfx, gap = 0) {
       break;
     case "sink": // the photo shrinks back into dither
       tone(c, t, 900, 0.3, "sine", 0.1, 240);
+      break;
+    case "decrypt": // a character locks in out of the noise: a teletype chirp, pitch all over
+      tone(c, t, 1800 + Math.random() * 2400, 0.022, "square", 0.12, 900 + Math.random() * 600);
       break;
     case "whole":
       tone(c, t, 1320, 0.05, "square", 0.12);

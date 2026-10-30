@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCalm } from "@/lib/calm";
 import { useVisits } from "@/lib/visits";
+import { play } from "@/lib/sfx";
 
 const GLYPHS = "!<>-_\\/[]{}=+*^?#01ABCDEF";
 
@@ -34,6 +35,7 @@ export function DecryptedText({ text, className, trigger = "mount", speed = 28 }
     const id = window.setInterval(() => {
       frame++;
       const revealed = Math.floor(frame / 2);
+      if (frame % 2 === 0 && text[revealed - 1] !== " ") play("decrypt", 0, true);
       setOut(
         text
           .split("")
