@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 /**
  * Terminal sound effects, synthesised on the fly with WebAudio (no audio files to fetch).
- * Quiet by design, only ever triggered by the page reacting to something, never an ambient loop.
+ * Loud on purpose (the visitor asked for it), only ever triggered by the page reacting to something, never an ambient loop.
  * Browsers only allow sound after a user gesture, so nothing plays before the first tap / key;
  * off in calm mode (plain / reduced motion) and behind a toggle (`fahmi:sfx` in localStorage).
  */
@@ -31,7 +31,7 @@ export type Sfx =
 
 const KEY = "fahmi:sfx";
 const CHANGE = "fahmi:sfx-change";
-const VOLUME = 0.16;
+const VOLUME = 1.6; // driven into a limiter: as loud as it gets without clipping
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -80,7 +80,13 @@ function audio() {
     ctx = new AC();
     master = ctx.createGain();
     master.gain.value = VOLUME;
-    master.connect(ctx.destination);
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -6;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.08;
+    master.connect(limiter).connect(ctx.destination);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
