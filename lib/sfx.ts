@@ -16,7 +16,6 @@ export type Sfx =
   | "err"
   | "glitch"
   | "tear"
-  | "zap"
   | "hover"
   | "charge"
   | "click"
@@ -260,9 +259,6 @@ export function play(name: Sfx, gap = 0) {
       noise(c, end, 0.08, 0.3, "highpass", 2500);
       break;
     }
-    case "zap": // the pointer lands on a button: it's live — an electric arc
-      arc(c, t, 0.16 + Math.random() * 0.1, 0.4);
-      break;
     case "hover": // the pointer lands on something live
       tone(c, t, 3400 + Math.random() * 400, 0.016, "square", 0.08);
       break;
