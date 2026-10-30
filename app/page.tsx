@@ -7,6 +7,7 @@ import { KeyHelp } from "@/components/shell/KeyHelp";
 import { RevealObserver } from "@/components/fx/RevealObserver";
 import { TouchDevelop } from "@/components/fx/TouchDevelop";
 import { SignalFx } from "@/components/fx/SignalFx";
+import { SfxFab } from "@/components/ui/SfxFab";
 import { Hero } from "@/components/hero/Hero";
 import { ResumePanel } from "@/components/hero/ResumePanel";
 import { About } from "@/components/about/About";
@@ -51,6 +52,7 @@ export default function Home() {
       <RevealObserver />
       <TouchDevelop />
       <SignalFx />
+      <SfxFab />
     </ShellProvider>
   );
 }

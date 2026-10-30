@@ -5,7 +5,6 @@ import { cn, scrollToId } from "@/lib/utils";
 import { useShell } from "./ShellProvider";
 import { KEYS_EVENT } from "./KeyHelp";
 import { SocialLink } from "@/components/ui/SocialLink";
-import { SfxToggle } from "@/components/ui/SfxToggle";
 
 export function Titlebar() {
   const { setPaletteOpen } = useShell();
@@ -15,7 +14,6 @@ export function Titlebar() {
         <span aria-hidden className="size-2.5 rounded-full border border-line-2" />
         <span aria-hidden className="size-2.5 rounded-full border border-line-2" />
         <span aria-hidden className="size-2.5 rounded-full border border-line-2" />
-        <SfxToggle />
       </div>
       <div className="hidden items-center gap-5 md:flex">
         <button
