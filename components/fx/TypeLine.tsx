@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCalm } from "@/lib/calm";
 import { useVisits } from "@/lib/visits";
-import { play } from "@/lib/sfx";
+import { onScreen, play, whenSettled } from "@/lib/sfx";
 
 type Props = {
   text: string;
@@ -29,16 +29,21 @@ export function TypeLine({ text, className, delay = 0, cps = 40, cursor = false 
     }
     let i = 0;
     let id = 0;
+    let t = 0;
     setN(0);
-    const t = window.setTimeout(() => {
-      id = window.setInterval(() => {
-        i++;
-        setN(i);
-        play("key", 30, true);
-        if (i >= text.length) window.clearInterval(id);
-      }, 1000 / cps);
-    }, delay);
+    const cancel = whenSettled(() => {
+      if (!onScreen(ref.current)) return setN(text.length);
+      t = window.setTimeout(() => {
+        id = window.setInterval(() => {
+          i++;
+          setN(i);
+          play("key", 30);
+          if (i >= text.length) window.clearInterval(id);
+        }, 1000 / cps);
+      }, delay);
+    });
     return () => {
+      cancel();
       window.clearTimeout(t);
       window.clearInterval(id);
     };

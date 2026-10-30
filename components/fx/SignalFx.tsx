@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCalm } from "@/lib/calm";
-import { play } from "@/lib/sfx";
+import { play, whenSettled } from "@/lib/sfx";
 
 /**
  * The machine on the other end has a bad signal. One place for the ambient interference:
@@ -51,15 +51,23 @@ export function SignalFx() {
 
     // --- glitch headings: on entering view, plus random bursts on what's visible -----------
     const visible = new Set<Element>();
+    const settling = new Set<() => void>();
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
-            if (!visible.has(e.target))
-              later(() => {
-                pulse(e.target, "data-glitch", 420);
-                play("glitch", 150, true);
-              }, rand(150, 500));
+            if (!visible.has(e.target)) {
+              const el = e.target;
+              settling.add(
+                whenSettled(() => {
+                  if (visible.has(el))
+                    later(() => {
+                      pulse(el, "data-glitch", 420);
+                      play("glitch", 150);
+                    }, rand(150, 500));
+                }),
+              );
+            }
             visible.add(e.target);
           } else visible.delete(e.target);
         }
@@ -202,6 +210,7 @@ export function SignalFx() {
       document.removeEventListener("close", onClose, true);
       mo.disconnect();
       timers.forEach(clearTimeout);
+      settling.forEach((cancel) => cancel());
       clearTimeout(tearOff);
       clearTimeout(idle);
       window.removeEventListener("scroll", onScroll);

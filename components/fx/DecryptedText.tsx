@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCalm } from "@/lib/calm";
 import { useVisits } from "@/lib/visits";
-import { play } from "@/lib/sfx";
+import { onScreen, play, whenSettled } from "@/lib/sfx";
 
 const GLYPHS = "!<>-_\\/[]{}=+*^?#01ABCDEF";
 
@@ -31,11 +31,12 @@ export function DecryptedText({ text, className, trigger = "mount", speed = 28 }
   useEffect(() => {
     if (!run || reduce) return;
     let frame = 0;
+    let id = 0;
     const total = text.length;
-    const id = window.setInterval(() => {
+    const tick = () => {
       frame++;
       const revealed = Math.floor(frame / 2);
-      if (frame % 2 === 0 && text[revealed - 1] !== " ") play("decrypt", 0, true);
+      if (frame % 2 === 0 && text[revealed - 1] !== " ") play("decrypt");
       setOut(
         text
           .split("")
@@ -49,8 +50,14 @@ export function DecryptedText({ text, className, trigger = "mount", speed = 28 }
         window.clearInterval(id);
         setOut(text);
       }
-    }, speed);
-    return () => window.clearInterval(id);
+    };
+    const cancel = whenSettled(() => {
+      if (onScreen(ref.current)) id = window.setInterval(tick, speed);
+    });
+    return () => {
+      cancel();
+      window.clearInterval(id);
+    };
   }, [run, reduce, text, speed]);
 
   return (

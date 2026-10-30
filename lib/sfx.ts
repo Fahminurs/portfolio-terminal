@@ -159,20 +159,38 @@ function stutter(c: AudioContext, at: number, slices: number, gain: number, low 
   return t;
 }
 
-// scrolling is quiet: whatever reveals itself on the way stays silent until the page settles,
-// except a section's own title loading in (its command typing, its name decrypting and glitching),
-// which asks for it with `whileScrolling`
+// scrolling is silent. A section title doesn't play its load-in (typing, decrypt, glitch) while the
+// page is moving either: it waits until the scroll stops with the title on screen (whenSettled)
 const SCROLL_QUIET_MS = 350;
 let scrolledAt = -Infinity;
 if (typeof window !== "undefined")
   window.addEventListener("scroll", () => (scrolledAt = performance.now()), { passive: true }); // the page, not inner scrollers
 const scrolling = () => performance.now() - scrolledAt < SCROLL_QUIET_MS;
 
+/** runs `cb` once the page has stopped scrolling (right away if it isn't). Returns a cancel. */
+export function whenSettled(cb: () => void) {
+  let id = 0;
+  const check = () => {
+    const wait = SCROLL_QUIET_MS - (performance.now() - scrolledAt);
+    if (wait <= 0) cb();
+    else id = window.setTimeout(check, wait + 20);
+  };
+  check();
+  return () => clearTimeout(id);
+}
+
+/** is any of `el` inside the viewport right now */
+export function onScreen(el: Element | null) {
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  return r.bottom > 0 && r.top < window.innerHeight;
+}
+
 const can = () => unlocked && sfxOn() && !calm();
 
 /** one-shot; `gap` ms throttles repeats of the same sound */
-export function play(name: Sfx, gap = 0, whileScrolling = false) {
-  if (!can() || (scrolling() && !whileScrolling)) return;
+export function play(name: Sfx, gap = 0) {
+  if (!can() || scrolling()) return;
   const now = performance.now();
   if (gap && now - (last.get(name) ?? 0) < gap) return;
   last.set(name, now);
