@@ -248,10 +248,9 @@ export function play(name: Sfx, gap = 0) {
     case "err":
       tone(c, t, 220, 0.12, "square", 0.16, 180);
       break;
-    case "glitch": // a heading tears: a skipping buffer, shorted out by an electric arc
+    case "glitch": // a heading tears: a skipping buffer over a low buzz
       stutter(c, t, 4 + Math.floor(Math.random() * 4), 0.32);
       tone(c, t, 90 + Math.random() * 60, 0.16, "sawtooth", 0.16, 45);
-      arc(c, t, 0.28 + Math.random() * 0.2, 0.4);
       break;
     case "tear": {
       // scrolled too fast: a longer, harsher breakup that drops away
@@ -260,9 +259,8 @@ export function play(name: Sfx, gap = 0) {
       noise(c, end, 0.08, 0.3, "highpass", 2500);
       break;
     }
-    case "zap": // glitch-hover on a button: two or three slices and a short spark
-      stutter(c, t, 2 + Math.floor(Math.random() * 2), 0.22, 600, 4800);
-      arc(c, t, 0.09, 0.3);
+    case "zap": // the pointer lands on a button: it's live — an electric arc
+      arc(c, t, 0.16 + Math.random() * 0.1, 0.4);
       break;
     case "hover": // the pointer lands on something live
       tone(c, t, 3400 + Math.random() * 400, 0.016, "square", 0.08);
