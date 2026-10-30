@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCalm } from "@/lib/calm";
-import { play, whenSettled } from "@/lib/sfx";
+import { away, play, whenSettled } from "@/lib/sfx";
 
 /**
  * The machine on the other end has a bad signal. One place for the ambient interference:
@@ -86,7 +86,7 @@ export function SignalFx() {
     mo.observe(document.body, { childList: true, subtree: true });
 
     const burst = () => {
-      if (!document.hidden && visible.size) {
+      if (!away() && visible.size) {
         const list = [...visible];
         pulse(list[Math.floor(Math.random() * list.length)], "data-glitch", 320);
         play("glitch", 150);
@@ -97,7 +97,7 @@ export function SignalFx() {
 
     // --- lost tracking: judder ----------------------------------------------------------------
     const roll = () => {
-      if (!document.hidden) {
+      if (!away()) {
         pulse(html, "data-tracking", 950);
         play("tracking");
       }
@@ -158,7 +158,7 @@ export function SignalFx() {
       clearTimeout(idle);
       if (fired >= IDLE_MAX) return;
       idle = window.setTimeout(() => {
-        if (document.hidden || document.querySelector("dialog[open]")) return arm();
+        if (away() || document.querySelector("dialog[open]")) return arm();
         fired++;
         const [lost, back] = GHOST_LINES[Math.floor(Math.random() * GHOST_LINES.length)];
         if (stat.current) pulse(stat.current, "data-run", 760);

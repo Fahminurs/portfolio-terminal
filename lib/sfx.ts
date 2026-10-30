@@ -157,6 +157,21 @@ export function unlockSfx() {
 }
 if (typeof window !== "undefined") GESTURES.forEach((g) => window.addEventListener(g, unlockSfx, true));
 
+/** the visitor is somewhere else: another tab, another window, the page minimised */
+export const away = () => document.hidden || !document.hasFocus();
+
+// leaving the page mutes it on the spot (even a printer buzz mid-run); coming back un-mutes
+if (typeof window !== "undefined") {
+  const sync = () => {
+    if (!ctx) return;
+    if (away()) void ctx.suspend();
+    else if (unlocked) void ctx.resume();
+  };
+  document.addEventListener("visibilitychange", sync);
+  window.addEventListener("blur", sync);
+  window.addEventListener("focus", sync);
+}
+
 function tone(c: AudioContext, at: number, f0: number, dur: number, type: OscillatorType, gain: number, f1 = f0) {
   const o = c.createOscillator();
   const g = c.createGain();
@@ -266,7 +281,7 @@ export function onScreen(el: Element | null) {
   return r.bottom > 0 && r.top < window.innerHeight;
 }
 
-const can = () => unlocked && sfxOn() && !calm();
+const can = () => unlocked && sfxOn() && !calm() && !away();
 
 /** one-shot; `gap` ms throttles repeats of the same sound */
 export function play(name: Sfx, gap = 0) {
