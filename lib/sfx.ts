@@ -147,6 +147,43 @@ function noise(c: AudioContext, at: number, dur: number, gain: number, type: Biq
  * Digital breakup: a run of tiny slices, each a random square pitch or a band of noise, hard cut
  * end to end like a buffer skipping. Every call is different.
  */
+/**
+ * Electricity: a 100 Hz transformer buzz and a high sizzle, both flickering on and off as the
+ * contact makes and breaks, with sharp crackles of spark on top.
+ */
+function arc(c: AudioContext, at: number, dur: number, gain: number) {
+  const g = c.createGain();
+  g.connect(master!);
+  // the flicker: the circuit makes and breaks every 8–30 ms
+  g.gain.setValueAtTime(0, at);
+  for (let t = at; t < at + dur; t += 0.008 + Math.random() * 0.022)
+    g.gain.setValueAtTime(Math.random() < 0.65 ? gain * (0.5 + Math.random() * 0.5) : 0, t);
+  g.gain.setValueAtTime(0, at + dur);
+
+  const hum = c.createOscillator();
+  hum.type = "sawtooth";
+  hum.frequency.value = 100;
+  const humAmp = c.createGain();
+  humAmp.gain.value = 0.5;
+  hum.connect(humAmp).connect(g);
+  const sizzle = c.createBufferSource();
+  sizzle.buffer = noiseBuf;
+  sizzle.loop = true;
+  const hp = c.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = 4500;
+  sizzle.connect(hp).connect(g);
+  hum.start(at);
+  sizzle.start(at, Math.random() * 0.5);
+  hum.stop(at + dur + 0.02);
+  sizzle.stop(at + dur + 0.02);
+
+  // sparks: dry cracks scattered across the arc
+  const sparks = 5 + Math.floor(Math.random() * 7);
+  for (let i = 0; i < sparks; i++)
+    noise(c, at + Math.random() * dur, 0.004 + Math.random() * 0.006, gain * 2, "bandpass", 2000 + Math.random() * 6000, 0.8);
+}
+
 function stutter(c: AudioContext, at: number, slices: number, gain: number, low = 120, high = 3200) {
   let t = at;
   for (let i = 0; i < slices; i++) {
@@ -211,9 +248,10 @@ export function play(name: Sfx, gap = 0) {
     case "err":
       tone(c, t, 220, 0.12, "square", 0.16, 180);
       break;
-    case "glitch": // a heading tears: a skipping buffer over a low buzz
+    case "glitch": // a heading tears: a skipping buffer, shorted out by an electric arc
       stutter(c, t, 4 + Math.floor(Math.random() * 4), 0.32);
       tone(c, t, 90 + Math.random() * 60, 0.16, "sawtooth", 0.16, 45);
+      arc(c, t, 0.28 + Math.random() * 0.2, 0.4);
       break;
     case "tear": {
       // scrolled too fast: a longer, harsher breakup that drops away
@@ -222,8 +260,9 @@ export function play(name: Sfx, gap = 0) {
       noise(c, end, 0.08, 0.3, "highpass", 2500);
       break;
     }
-    case "zap": // glitch-hover on a button: two or three slices, short
+    case "zap": // glitch-hover on a button: two or three slices and a short spark
       stutter(c, t, 2 + Math.floor(Math.random() * 2), 0.22, 600, 4800);
+      arc(c, t, 0.09, 0.3);
       break;
     case "hover": // the pointer lands on something live
       tone(c, t, 3400 + Math.random() * 400, 0.016, "square", 0.08);
