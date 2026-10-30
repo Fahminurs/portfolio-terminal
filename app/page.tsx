@@ -6,6 +6,7 @@ import { CommandPalette } from "@/components/shell/CommandPalette";
 import { KeyHelp } from "@/components/shell/KeyHelp";
 import { RevealObserver } from "@/components/fx/RevealObserver";
 import { TouchDevelop } from "@/components/fx/TouchDevelop";
+import { SignalFx } from "@/components/fx/SignalFx";
 import { Hero } from "@/components/hero/Hero";
 import { ResumePanel } from "@/components/hero/ResumePanel";
 import { About } from "@/components/about/About";
@@ -49,6 +50,7 @@ export default function Home() {
       <KeyHelp />
       <RevealObserver />
       <TouchDevelop />
+      <SignalFx />
     </ShellProvider>
   );
 }

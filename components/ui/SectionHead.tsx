@@ -29,7 +29,9 @@ export function SectionHead({ n, label, cmd, title, count, right, className, sti
             {still ? <span className="text-fg">{cmd}</span> : <TypeLine text={cmd} cps={38} className="text-fg" />}
           </p>
           <h2 className="flex items-center gap-3 font-display text-[22px] uppercase tracking-[0.04em] text-fg md:text-[26px]">
-            {still ? title : <DecryptedText text={title} trigger="view" />}
+            <span className="glitch" data-text={title}>
+              {still ? title : <DecryptedText text={title} trigger="view" />}
+            </span>
             {count && (
               <span className="bg-fg px-1.5 py-px font-mono text-[10px] tracking-normal text-bg">
                 {count}

@@ -42,9 +42,13 @@ export function Hero() {
             </span>
 
             <h1 className="font-display text-[44px] leading-[0.95] tracking-[-0.01em] text-fg sm:text-[64px] xl:text-[80px]">
-              <DecryptedText text={profile.first} speed={34} trigger="view" />
+              <span className="glitch block" data-text={profile.first}>
+                <DecryptedText text={profile.first} speed={34} trigger="view" />
+              </span>
               <span className="block pl-[14%]">
-                <DecryptedText text={profile.last} speed={30} trigger="view" />
+                <span className="glitch" data-text={profile.last}>
+                  <DecryptedText text={profile.last} speed={30} trigger="view" />
+                </span>
                 <span className="text-accent">_</span>
               </span>
             </h1>
@@ -56,7 +60,7 @@ export function Hero() {
             <div className="flex flex-wrap gap-2.5">
               <button
                 onClick={() => scrollToId("projects")}
-                className="border border-accent bg-accent px-4 py-2.5 text-[12.5px] font-bold text-bg transition-colors hover:bg-transparent hover:text-accent"
+                className="glitch-hover border border-accent bg-accent px-4 py-2.5 text-[12.5px] font-bold text-bg transition-colors hover:bg-transparent hover:text-accent"
               >
                 <span className="opacity-60">$ </span>view-projects
               </button>
@@ -64,7 +68,7 @@ export function Hero() {
                 onClick={() => setResumeOpen(!resumeOpen)}
                 aria-expanded={resumeOpen}
                 aria-controls="resume"
-                className="border border-line-2 px-4 py-2.5 text-[12.5px] text-fg-2 transition-colors hover:border-fg-2 hover:text-fg"
+                className="glitch-hover border border-line-2 px-4 py-2.5 text-[12.5px] text-fg-2 transition-colors hover:border-fg-2 hover:text-fg"
               >
                 <span className="opacity-50">$ </span>
                 {resumeOpen ? "close-resume" : "view-resume"}

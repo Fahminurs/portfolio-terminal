@@ -25,7 +25,7 @@ export function SocialLink({ social: s, compact, suffix, className }: Props) {
       href={s.href}
       target="_blank"
       rel="noreferrer"
-      className={cn("flex items-stretch border border-line text-fg-2 transition-colors", tone.hover, className)}
+      className={cn("glitch-hover flex items-stretch border border-line text-fg-2 transition-colors", tone.hover, className)}
     >
       <span className={cn("flex items-center px-1.5 font-bold text-bg", tone.seg)}>{s.short}</span>
       <span className={cn("flex items-center px-1.5", compact && "hidden sm:flex")}>
