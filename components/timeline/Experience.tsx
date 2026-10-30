@@ -5,6 +5,8 @@ import { useRef } from "react";
 import { experience, sections } from "@/content/data";
 import { SectionHead } from "@/components/ui/SectionHead";
 import { NoSignal } from "@/components/ui/NoSignal";
+import { DitherReveal } from "@/components/fx/DitherReveal";
+import { ManTrigger } from "@/components/projects/ManViewer";
 import { useCalm } from "@/lib/calm";
 import { useVisits } from "@/lib/visits";
 import { cn } from "@/lib/utils";
@@ -18,7 +20,11 @@ const TAG_COLOR: Record<string, string> = {
   ORG: "text-term-magenta",
 };
 
-/** `tail -f`: lines arrive from the bottom one by one every time the log comes into view (§5.7). */
+/**
+ * `tail -f`: lines arrive from the bottom one by one every time the log comes into view (§5.7).
+ * Each line's proof (certificate, internship grades) sits beside it as a dithered card — on phones
+ * too, under the text — and opens in the same man-page viewer as the projects.
+ */
 export function Experience() {
   const ref = useRef<HTMLOListElement>(null);
   const { visits } = useVisits(ref, "0px 0px -20% 0px");
@@ -51,7 +57,22 @@ export function Experience() {
               <p className="mt-0.5 text-[12px] text-fg-2">{e.org}</p>
               <p className="mt-2 max-w-[62ch] font-prose text-[14px] leading-[1.65] text-fg-2">{e.desc}</p>
             </div>
-            <NoSignal label="foto.jpg" className="hidden min-h-24 md:flex" />
+            {e.doc ? (
+              <ManTrigger
+                man={{ slug: e.slug, title: e.title, category: `${e.tag} — ${e.org}`, period: e.period, summary: e.desc, stack: [], gallery: e.gallery }}
+              >
+                <DitherReveal
+                  src={e.doc.src}
+                  dither={e.doc.dither}
+                  alt={`${e.title} — ${e.org}`}
+                  label={e.doc.label}
+                  focusable={false}
+                  className="aspect-[4/3] w-full max-w-sm md:max-w-none"
+                />
+              </ManTrigger>
+            ) : (
+              <NoSignal label="foto.jpg" className="hidden min-h-24 md:flex" />
+            )}
           </motion.li>
         ))}
       </ol>

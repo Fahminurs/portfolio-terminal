@@ -461,6 +461,13 @@ export const experience = [
     title: "Software Engineer",
     org: "PT. Irostech",
     desc: "Magang sebagai Software Engineer pada semester 7 — terlibat dalam pengembangan software sesuai kebutuhan perusahaan.",
+    slug: "irostech",
+    period: "September — Desember 2025",
+    doc: { src: "/media/exp-irostech.jpg", dither: "/media/dither/exp-irostech.png", label: "nilai-magang.pdf" },
+    gallery: figs("irostech", [
+      ["01-form-penilaian.webp", "Form penilaian magang dari pembimbing PT. Irostech Solusi Intelijen — semua aspek bernilai A"],
+      ["02-surat-pengantar.webp", "Surat Prodi Teknik Komputer UPI kepada mitra magang untuk penilaian MBKM 2025/2026"],
+    ]),
   },
   {
     ts: ["2025", "DBS CC"],
@@ -468,12 +475,23 @@ export const experience = [
     title: "DBS Coding Camp 2025",
     org: "Kampus Merdeka — Program Studi Independen Bersertifikat",
     desc: "Mengikuti program Studi Independen DBS Coding Camp 2025 — hasil akhirnya berupa proyek AcneSense.",
+    slug: "dbs-coding-camp",
+    period: "10 Februari — 16 Juli 2025",
+    doc: { src: "/media/exp-dbs-coding-camp.jpg", dither: "/media/dither/exp-dbs-coding-camp.png", label: "certificate.pdf" },
+    gallery: figs("dbs-coding-camp", [
+      ["01-sertifikat.webp", "Certificate of Completion — Coding Camp powered by DBS Foundation, Front-End & Back-End Developer"],
+      ["02-learning-achievement.webp", "Student Learning Achievement — Full Graduate, capstone 96.4"],
+    ]),
   },
   {
     ts: ["2024", "1—8 Jun"],
     tag: "ORG",
     title: "Staff — Design & Decoration",
     org: "Dies Natalis Teknik Komputer, Universitas Pendidikan Indonesia",
+    slug: "dies-natalis",
+    period: "1 — 8 Juni 2024",
+    doc: { src: "/media/exp-dies-natalis.jpg", dither: "/media/dither/exp-dies-natalis.png", label: "sertifikat.png" },
+    gallery: figs("dies-natalis", [["01-sertifikat.webp", "Sertifikat apresiasi — Staff Divisi Desain & Dekorasi, Dies Natalis Teknik Komputer"]]),
     desc: "Merancang konsep visual acara — brainstorming, pemilihan warna, dan penataan ruang untuk menciptakan suasana perayaan. Berkolaborasi dengan tim lain untuk memastikan keselarasan elemen dekorasi dan turut terlibat dalam persiapan materi.",
   },
 ];
