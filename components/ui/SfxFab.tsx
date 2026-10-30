@@ -6,13 +6,14 @@ import { useCalm } from "@/lib/calm";
 import { cn } from "@/lib/utils";
 
 const HOLD_MS = 380; // touch: hold the button this long and the slider comes up under the finger
-const LINGER_MS = 1400; // touch: the slider stays this long after the finger lifts
+const IDLE_MS = 4000; // the open slider folds away after this long untouched
 
 /**
  * Volume as a floating button, bottom-right above the statusline. The pixel speaker shows the
- * level (0–3 waves, or crossed out when muted); a click / tap mutes and unmutes.
- * The slider is a column of 10 cells above it: with a mouse it opens on hover (drag or scroll
- * along it); on a phone, hold the button and slide the finger up and down, let go to set.
+ * level (0–3 waves, or crossed out when muted). The first click / tap opens the slider (a column
+ * of 10 cells above it: click, drag or scroll along it); with the slider up, the button mutes and
+ * unmutes. It folds away on a click elsewhere, Esc, or a few seconds untouched. On a phone you
+ * can also hold the button and slide the finger straight up the column.
  * Keys from anywhere: m mutes, - / = step the volume. Hidden in calm mode (sound is off there).
  */
 export function SfxFab() {
@@ -20,6 +21,7 @@ export function SfxFab() {
   const vol = useSfxVolume();
   const calm = useCalm();
   const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
   const cells = useRef<HTMLSpanElement>(null);
   const shut = useRef(0);
   const press = useRef<{ id: number; timer: number; held: boolean } | null>(null);
@@ -38,6 +40,21 @@ export function SfxFab() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // open: a click anywhere else or Esc folds it away
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
 
   // the wheel needs a non-passive listener to keep the page from scrolling under it
   useEffect(() => {
@@ -58,22 +75,19 @@ export function SfxFab() {
     const r = cells.current!.getBoundingClientRect();
     return Math.ceil(((r.bottom - y) / r.height) * VOL_STEPS);
   };
+  // (re)arm the idle fold-away; any touch of the slider or button pushes it back
   const show = () => {
     clearTimeout(shut.current);
     setOpen(true);
-  };
-  const hide = (ms: number) => {
-    clearTimeout(shut.current);
-    shut.current = window.setTimeout(() => setOpen(false), ms);
+    shut.current = window.setTimeout(() => setOpen(false), IDLE_MS);
   };
 
   return (
     <div
+      ref={box}
       className="fixed bottom-14 right-4 z-40 flex flex-col items-center print:hidden xl:bottom-10"
-      onPointerEnter={(e) => e.pointerType === "mouse" && show()}
-      onPointerLeave={(e) => e.pointerType === "mouse" && hide(250)}
-      onFocus={show}
-      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && hide(0)}
+      onPointerMove={() => open && show()}
+      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setOpen(false)}
     >
       {/* slider: a column of cells, loudest at the top */}
       <div
@@ -88,6 +102,7 @@ export function SfxFab() {
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           setSfxVolume(at(e.clientY));
+          show();
         }}
         onPointerMove={(e) => e.currentTarget.hasPointerCapture(e.pointerId) && setSfxVolume(at(e.clientY))}
         onKeyDown={(e) => {
@@ -96,6 +111,7 @@ export function SfxFab() {
           else if (e.key === "End") setSfxVolume(VOL_STEPS);
           else if (!d) return;
           else setSfxVolume(vol + d);
+          show();
           e.preventDefault();
         }}
         className={cn(
@@ -117,9 +133,9 @@ export function SfxFab() {
       </div>
 
       <button
-        aria-label={muted ? "nyalakan suara" : "matikan suara"}
-        aria-pressed={!muted}
-        title={muted ? "nyalakan suara (m)" : "matikan suara (m) · tahan untuk atur volume"}
+        aria-label={!open ? "atur volume" : muted ? "nyalakan suara" : "matikan suara"}
+        aria-expanded={open}
+        title={!open ? "atur volume" : muted ? "nyalakan suara (m)" : "matikan suara (m)"}
         onPointerDown={(e) => {
           if (e.pointerType === "mouse") return;
           // touch: a hold brings the slider up under the finger, then the same finger drags it
@@ -145,7 +161,7 @@ export function SfxFab() {
           clearTimeout(p.timer);
           if (p.held) {
             swallow.current = true;
-            hide(LINGER_MS);
+            show();
           }
         }}
         onPointerCancel={() => {
@@ -155,7 +171,9 @@ export function SfxFab() {
         onContextMenu={(e) => e.preventDefault()}
         onClick={() => {
           if (swallow.current) return void (swallow.current = false);
-          toggle();
+          // first click brings the slider up; with it up, the button is the mute switch
+          if (open) toggle();
+          show();
         }}
         className={cn(
           "grid size-11 touch-none select-none place-items-center border bg-surface transition-colors",
