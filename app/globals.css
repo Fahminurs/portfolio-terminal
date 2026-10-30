@@ -213,11 +213,32 @@ dialog.man::backdrop { background: color-mix(in oklab, var(--color-bg) 84%, tran
 :root:not([data-plain]) .man-demo .man-demo-ghost { animation: man-ghost 1.3s 0.9s 2 both; }
 :root:not([data-plain]) .man-demo .man-demo-hint { animation: man-hint-out 1.3s 0.9s 2 both; }
 :root:not([data-plain]) .man-chev { animation: man-chev 1.6s steps(2, end) infinite; }
-/* touch: no hover — the photo develops when the card scrolls into view (RevealObserver sets
-   data-inview); without JS it just shows the photo */
+/* touch (phones, tablets): no hover — hold a card to develop the photo from under the finger
+   (TouchDevelop drives --rx/--ry/--rr; a tap still opens the gallery) */
+.touch-hint { display: none; }
 @media (hover: none) {
-  :root:not([data-reveal-ready]) .dither-orig { --reveal: 100%; }
-  .dither-reveal[data-inview] .dither-orig { --reveal: 100%; transition-duration: 640ms; }
+  .dither-reveal { -webkit-touch-callout: none; user-select: none; }
+  .dither-orig {
+    transition: none;
+    mask-image: radial-gradient(circle at var(--rx, 50%) var(--ry, 50%), #000 var(--rr, 0px), transparent calc(var(--rr, 0px) + 1px));
+    -webkit-mask-image: radial-gradient(circle at var(--rx, 50%) var(--ry, 50%), #000 var(--rr, 0px), transparent calc(var(--rr, 0px) + 1px));
+  }
+  .dither-reveal[data-developed] .dither-orig { mask-image: none; -webkit-mask-image: none; }
+  .touch-hint { display: flex; }
+  .dither-reveal[data-developed] .touch-hint,
+  .dither-reveal[data-holding] .touch-hint { display: none; }
+}
+/* progress ring around the finger while holding */
+.develop-ring {
+  position: absolute;
+  z-index: 2;
+  width: 58px;
+  height: 58px;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  pointer-events: none;
+  background: conic-gradient(var(--accent) calc(var(--p, 0) * 1turn), rgba(11, 12, 10, 0.55) 0);
+  mask: radial-gradient(circle, transparent 23px, #000 24px);
 }
 
 /* ===== TUI layer ===== */

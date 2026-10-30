@@ -33,6 +33,10 @@ export function DitherReveal({ src, dither, alt, label, className, focusable = t
       <span className="absolute left-2 top-2 border border-line bg-bg px-1.5 py-px text-[10px] text-fg-3">
         {label}
       </span>
+      {/* touch only (CSS): hold the card to develop it — see TouchDevelop */}
+      <span aria-hidden className="touch-hint absolute right-2 top-2 items-center gap-1 border border-line bg-bg px-1.5 py-px text-[10px] text-fg-3">
+        <span className="text-accent">◉</span> tahan
+      </span>
     </div>
   );
 }
