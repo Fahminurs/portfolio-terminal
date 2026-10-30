@@ -3,6 +3,7 @@
 import { Command } from "cmdk";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { play } from "@/lib/sfx";
 import { profile, projects, sections } from "@/content/data";
 import { OPEN_PROJECT_EVENT, scrollToId } from "@/lib/utils";
 import { useShell, type Theme } from "./ShellProvider";
@@ -60,11 +61,16 @@ export function CommandPalette() {
   );
 
   useEffect(() => {
+    if (paletteOpen) play("thunk");
+  }, [paletteOpen]);
+
+  useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
   }, [log]);
 
   const close = () => {
     setPaletteOpen(false);
+    play("off", 200);
     setQ("");
     histIdx.current = -1;
   };
@@ -160,6 +166,7 @@ export function CommandPalette() {
       default:
         print(`zsh: command not found: ${cmd} — try 'help'`, "err");
     }
+    play(out.some((l) => l.kind === "err") ? "err" : "ok");
     setLog((l) => [...l, ...out].slice(-120));
   };
 

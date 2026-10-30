@@ -96,6 +96,7 @@ function Printer({ onClose }: { onClose: () => void }) {
     play("thunk");
     html.style.overflow = "hidden";
     return () => {
+      play("off", 200);
       html.style.overflow = overflow;
       opener?.focus({ preventScroll: true });
     };

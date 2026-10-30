@@ -15,6 +15,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { useCalm } from "@/lib/calm";
 import { AsciiProgress } from "@/components/fx/AsciiProgress";
+import { hold as holdSfx, play } from "@/lib/sfx";
 import { cn } from "@/lib/utils";
 import { BUS_HEX, BUS_TEXT, LEFT, RIGHT, type Pin } from "./pins";
 import {
@@ -311,9 +312,11 @@ function createDrift(camera: PerspectiveCamera, controls: OrbitControls) {
   const el = controls.domElement as HTMLElement;
   let sx = 0;
   let sy = 0;
+  let hum = () => {};
   const grab = () => {
     moved = true;
     live = false;
+    if (held) hum = holdSfx("servo");
   };
   const down = (e: PointerEvent) => {
     sx = e.clientX;
@@ -331,6 +334,8 @@ function createDrift(camera: PerspectiveCamera, controls: OrbitControls) {
   };
   const release = () => {
     held = false;
+    hum();
+    hum = () => {};
     if (moved) resumeAt = performance.now() + RESUME_MS;
   };
   el.addEventListener("pointerdown", down);
@@ -582,6 +587,10 @@ export default function Pcb3D() {
   const readout = useRef<HTMLSpanElement>(null);
   const view = useRef<ViewApi | null>(null);
   const [hover, setHover] = useState<Hover>(null);
+  const probed = hover ? `${hover.side}${hover.i}` : "";
+  useEffect(() => {
+    if (probed) play("probe", 40);
+  }, [probed]);
   const [running, setRunning] = useState(true);
   const calm = useCalm(); // plain mode / reduced motion: the camera stays where it's put
   // client-only component (loaded with ssr:false), so window is available in initializers

@@ -109,7 +109,7 @@ export function SignalFx() {
       lastY = window.scrollY;
       lastT = now;
       if (v > 3.2) {
-        if (!("tear" in html.dataset)) play("glitch", 400);
+        if (!("tear" in html.dataset)) play("tear", 350);
         html.dataset.tear = "";
         clearTimeout(tearOff);
         tearOff = window.setTimeout(() => delete html.dataset.tear, 160);
@@ -142,7 +142,7 @@ export function SignalFx() {
         b.append(s);
       }
       document.body.append(b);
-      play("key");
+      play(t?.closest("a, button, [role=button], summary, label") ? "click" : "key", 30);
       later(() => b.remove(), 420);
     };
 
@@ -159,7 +159,10 @@ export function SignalFx() {
         if (stat.current) pulse(stat.current, "data-run", 760);
         play("static");
         setGhost(lost);
-        later(() => setGhost(back), 1900);
+        later(() => {
+          setGhost(back);
+          play("ok");
+        }, 1900);
         later(() => setGhost(null), 4600);
         arm();
       }, IDLE_MS);
@@ -172,6 +175,35 @@ export function SignalFx() {
     };
     arm();
 
+    // --- pointer over live things: a tiny blip, a zap on the glitchy buttons -----------------
+    let over: Element | null = null;
+    const onOver = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      const live = e.target instanceof Element ? e.target.closest("a, button, [role=button], summary, .glitch-hover") : null;
+      if (live === over) return;
+      over = live;
+      if (live) play(live.classList.contains("glitch-hover") ? "zap" : "hover", 45);
+    };
+
+    // --- any dialog closing powers down like a CRT (close doesn't bubble: catch it on the way down)
+    const onClose = (e: Event) => {
+      if (e.target instanceof HTMLDialogElement) play("off", 200);
+    };
+
+    // --- each section that scrolls into view gets a blip ------------------------------------
+    let lastSection = "";
+    const sio = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting || e.target.id === lastSection) continue;
+          if (lastSection) play("blip", 300);
+          lastSection = e.target.id;
+        }
+      },
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    document.querySelectorAll("section[id]").forEach((s) => sio.observe(s));
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("scroll", wake, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
@@ -179,8 +211,13 @@ export function SignalFx() {
     window.addEventListener("pointerup", onUp, { passive: true });
     window.addEventListener("keydown", wake);
     window.addEventListener("keydown", onKey);
+    document.addEventListener("pointerover", onOver, { passive: true });
+    document.addEventListener("close", onClose, true);
     return () => {
       io.disconnect();
+      sio.disconnect();
+      document.removeEventListener("pointerover", onOver);
+      document.removeEventListener("close", onClose, true);
       mo.disconnect();
       timers.forEach(clearTimeout);
       clearTimeout(tearOff);

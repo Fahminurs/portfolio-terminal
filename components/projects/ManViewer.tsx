@@ -228,7 +228,10 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
   const calm = useCalm();
   const figs = man.gallery;
   const n = figs.length;
-  const go = (d: number) => setI((v) => (v + d + n) % n);
+  const go = (d: number) => {
+    play("slide", 80);
+    setI((v) => (v + d + n) % n);
+  };
   // every exit goes through history, so the phone's Back gesture closes the viewer instead of leaving the page
   // (a per-open token: history.state survives reloads, so a bare flag could be a stale one and Back would leave the page)
   const token = useRef<string | null>(null);
@@ -261,6 +264,7 @@ function ManViewer({ man, start, onClose }: { man: Man; start: number; onClose: 
       } catch {}
     }
     return () => {
+      play("off", 200);
       html.style.overflow = overflow;
       opener?.focus({ preventScroll: true });
     };

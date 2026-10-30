@@ -9,7 +9,25 @@ import { useSyncExternalStore } from "react";
  * off in calm mode (plain / reduced motion) and behind a toggle (`fahmi:sfx` in localStorage).
  */
 
-export type Sfx = "key" | "tick" | "ok" | "glitch" | "tracking" | "static" | "thunk" | "whole" | "err";
+export type Sfx =
+  | "key"
+  | "tick"
+  | "ok"
+  | "err"
+  | "glitch"
+  | "tear"
+  | "zap"
+  | "hover"
+  | "click"
+  | "tracking"
+  | "static"
+  | "thunk"
+  | "off"
+  | "slide"
+  | "blip"
+  | "probe"
+  | "whole"
+  | "sink";
 
 const KEY = "fahmi:sfx";
 const CHANGE = "fahmi:sfx-change";
@@ -110,6 +128,22 @@ function noise(c: AudioContext, at: number, dur: number, gain: number, type: Biq
   s.stop(at + dur + 0.02);
 }
 
+/**
+ * Digital breakup: a run of tiny slices, each a random square pitch or a band of noise, hard cut
+ * end to end like a buffer skipping. Every call is different.
+ */
+function stutter(c: AudioContext, at: number, slices: number, gain: number, low = 120, high = 3200) {
+  let t = at;
+  for (let i = 0; i < slices; i++) {
+    const d = 0.012 + Math.random() * 0.03;
+    const f = low * (high / low) ** Math.random();
+    if (Math.random() < 0.55) tone(c, t, f, d, "square", gain * (0.6 + Math.random() * 0.4), f * (0.5 + Math.random()));
+    else noise(c, t, d, gain * 1.6, "bandpass", f, 3 + Math.random() * 6);
+    t += d + (Math.random() < 0.3 ? 0.012 : 0); // the odd dropout between slices
+  }
+  return t;
+}
+
 const can = () => unlocked && sfxOn() && !calm();
 
 /** one-shot; `gap` ms throttles repeats of the same sound */
@@ -135,9 +169,27 @@ export function play(name: Sfx, gap = 0) {
     case "err":
       tone(c, t, 220, 0.12, "square", 0.16, 180);
       break;
-    case "glitch":
-      noise(c, t, 0.09, 0.3, "bandpass", 1400, 2.5);
-      tone(c, t, 160, 0.09, "sawtooth", 0.1, 60);
+    case "glitch": // a heading tears: a skipping buffer over a low buzz
+      stutter(c, t, 4 + Math.floor(Math.random() * 4), 0.32);
+      tone(c, t, 90 + Math.random() * 60, 0.16, "sawtooth", 0.16, 45);
+      break;
+    case "tear": {
+      // scrolled too fast: a longer, harsher breakup that drops away
+      const end = stutter(c, t, 8 + Math.floor(Math.random() * 5), 0.38, 80, 4200);
+      tone(c, t, 240, end - t + 0.05, "sawtooth", 0.2, 30);
+      noise(c, end, 0.08, 0.3, "highpass", 2500);
+      break;
+    }
+    case "zap": // glitch-hover on a button: two or three slices, short
+      stutter(c, t, 2 + Math.floor(Math.random() * 2), 0.22, 600, 4800);
+      break;
+    case "hover": // the pointer lands on something live
+      tone(c, t, 3400 + Math.random() * 400, 0.006, "square", 0.05);
+      break;
+    case "click": // a heavier relay click than a key
+      tone(c, t, 420, 0.03, "square", 0.24, 140);
+      noise(c, t, 0.02, 0.22, "highpass", 2200);
+      tone(c, t + 0.035, 2400, 0.008, "square", 0.08);
       break;
     case "tracking": // a low tape-wobble hum rolling past
       tone(c, t, 62, 0.9, "sawtooth", 0.06, 48);
@@ -151,6 +203,26 @@ export function play(name: Sfx, gap = 0) {
       tone(c, t, 170, 0.28, "sine", 0.4, 42);
       noise(c, t, 0.12, 0.16, "lowpass", 700);
       break;
+    case "off": // CRT switched off: the picture collapses to a dot with a falling whine
+      tone(c, t, 1400, 0.32, "sine", 0.22, 60);
+      noise(c, t, 0.05, 0.3, "lowpass", 1200);
+      tone(c, t + 0.3, 60, 0.12, "sine", 0.25, 30);
+      break;
+    case "slide": // next figure: a scan sweeping across, stepped like the projector
+      for (let i = 0; i < 6; i++) tone(c, t + i * 0.022, 500 * 1.45 ** i, 0.02, "square", 0.08);
+      noise(c, t, 0.15, 0.12, "bandpass", 2600, 1.5);
+      break;
+    case "blip": // a new section scrolls in
+      tone(c, t, 660, 0.03, "square", 0.08);
+      tone(c, t + 0.04, 990, 0.04, "square", 0.07);
+      break;
+    case "probe": // a pin under the cursor: a multimeter beep
+      tone(c, t, 1200 + Math.random() * 800, 0.045, "sine", 0.18);
+      tone(c, t, 60, 0.04, "square", 0.05);
+      break;
+    case "sink": // the photo shrinks back into dither
+      tone(c, t, 900, 0.3, "sine", 0.1, 240);
+      break;
     case "whole":
       tone(c, t, 1320, 0.05, "square", 0.12);
       tone(c, t + 0.06, 1760, 0.08, "square", 0.12);
@@ -162,7 +234,7 @@ export function play(name: Sfx, gap = 0) {
  * A sustained sound that runs until stopped (dot-matrix print head, a held press).
  * Returns the stopper; a no-op when sound is off.
  */
-export function hold(name: "print" | "develop", ms = 650): () => void {
+export function hold(name: "print" | "develop" | "servo", ms = 650): () => void {
   if (!can()) return () => {};
   const c = audio();
   const t = c.currentTime + 0.005;
@@ -185,6 +257,23 @@ export function hold(name: "print" | "develop", ms = 650): () => void {
     o.connect(amp).connect(out);
     out.gain.value = 0.07;
     nodes.push(o, chop);
+  } else if (name === "servo") {
+    // the board being turned by hand: a geared whine with a slow wobble
+    const o = c.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.value = 140;
+    const wob = c.createOscillator();
+    wob.frequency.value = 7;
+    const wobDepth = c.createGain();
+    wobDepth.gain.value = 18;
+    wob.connect(wobDepth).connect(o.frequency);
+    const f = c.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.value = 900;
+    o.connect(f).connect(out);
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.06, t + 0.08);
+    nodes.push(o, wob);
   } else {
     // a rising tone while the photo develops under the finger
     const o = c.createOscillator();

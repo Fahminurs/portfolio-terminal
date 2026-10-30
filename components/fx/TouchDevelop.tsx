@@ -61,6 +61,7 @@ export function TouchDevelop() {
         delete el.dataset.holding;
         return;
       }
+      play("sink", 100);
       const t0 = performance.now();
       const dur = SINK_MS * from;
       const back = (now: number) => {
