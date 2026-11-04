@@ -16,7 +16,8 @@ const s = sections[5];
 // log levels, one hue per kind of entry — like syslog tags in a colored `tail -f`
 const TAG_COLOR: Record<string, string> = {
   INTERN: "text-term-green",
-  "STUDI INDEPENDEN": "text-term-cyan",
+  BEASISWA: "text-term-cyan",
+  FOUNDER: "text-term-yellow",
   ORG: "text-term-magenta",
 };
 
@@ -25,7 +26,7 @@ const TAG_COLOR: Record<string, string> = {
  * Each line's proof (certificate, internship grades) sits beside it as a dithered card — on phones
  * too, under the text — and goes through the same dot-matrix printer as the CV: every page, zoomable.
  */
-function DocCard({ doc, alt }: { doc: (typeof experience)[number]["doc"]; alt: string }) {
+function DocCard({ doc, alt }: { doc: NonNullable<(typeof experience)[number]["doc"]>; alt: string }) {
   const [open, setOpen] = useState(false);
   const n = doc.pages.length;
   return (
@@ -82,7 +83,7 @@ export function Experience() {
               <p className="mt-0.5 text-[12px] text-fg-2">{e.org}</p>
               <p className="mt-2 max-w-[62ch] font-prose text-[14px] leading-[1.65] text-fg-2">{e.desc}</p>
             </div>
-            <DocCard doc={e.doc} alt={`${e.title} — ${e.org}`} />
+            {e.doc && <DocCard doc={e.doc} alt={`${e.title} — ${e.org}`} />}
           </motion.li>
         ))}
       </ol>

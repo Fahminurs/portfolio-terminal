@@ -12,12 +12,11 @@ export const profile = {
     { k: "STATUS", v: "OPEN_TO_WORK", tone: "ok" as const },
     { k: "LOCATION", v: "Bandung, ID" },
     { k: "FOCUS", v: "Software / Embedded" },
-    { k: "EXPERIENCE", v: "Project-Based" },
+    { k: "EXPERIENCE", v: "Magang + Proyek" },
   ],
   socials: [
     // ansi: the reverse-video colour of the `in`/`ig`/`gh` segment (ANSI palette in globals.css)
     { short: "in", label: "LinkedIn", href: "https://www.linkedin.com/in/fahmi-nursafaat", ansi: "blue" },
-    { short: "ig", label: "Instagram", href: "https://www.instagram.com/", ansi: "magenta" },
     { short: "gh", label: "GitHub", href: "https://github.com/Fahminurs", ansi: "cyan" },
   ],
   github: "https://github.com/Fahminurs",
@@ -36,13 +35,16 @@ export const about = {
     { n: "03", t: "ITERATE", d: "Menguji, mengevaluasi, dan menyempurnakan solusi berdasarkan hasil yang ditemukan." },
   ],
   stack: {
-    core: ["C / C++", "JavaScript", "Node.js", "PHP", "Java", "Express", "Laravel", "React", "Flutter", "MySQL"],
+    core: ["Python", "FastAPI", "PostgreSQL", "C / C++", "JavaScript", "Node.js", "PHP", "Java", "Express", "Laravel", "React", "Flutter", "MySQL"],
     supporting: ["Firebase", "Supabase", "MongoDB", "IoT", "Computer Vision"],
   },
 };
 
 /** tech tag → project slugs that actually use it (§5.3 cross-link). Empty = repo-only. */
 export const stackUses: Record<string, string[]> = {
+  Python: ["parkeasy-ai"],
+  FastAPI: ["parkeasy-ai"],
+  PostgreSQL: ["parkeasy-ai", "acnesense"],
   "C / C++": ["parkeasy-alat", "chillstation"],
   JavaScript: ["acnesense"],
   "Node.js": ["acnesense"],
@@ -53,7 +55,7 @@ export const stackUses: Record<string, string[]> = {
   React: ["eduviana"],
   Flutter: ["skinsenseai", "helios"],
   MySQL: [],
-  Firebase: [],
+  Firebase: ["skinsenseai"],
   Supabase: ["parkeasy-ai", "acnesense"],
   MongoDB: [],
   IoT: ["parkeasy-alat", "chillstation", "helios"],
@@ -121,8 +123,8 @@ export const projects: Project[] = [
     period: "2025 — Sekarang",
     status: { kind: "progress" },
     summary:
-      "Platform SaaS pembelajaran — ujian lisan berbasis Gemini Live API, mind map, quiz, flashcard, rangkuman otomatis, upload dokumen, dan glosarium. Masih dalam tahap pengembangan aktif menuju deployment self-hosted di VPS.",
-    stack: ["Next.js", "FastAPI", "PostgreSQL", "Gemini API"],
+      "Platform SaaS pembelajaran — ujian lisan, mind map, quiz, flashcard, rangkuman, upload dokumen, dan glosarium. Front end Next.js sudah dibangun dengan data contoh; backend FastAPI dan integrasi Gemini masih direncanakan.",
+    stack: ["Next.js", "TypeScript", "Tailwind CSS"],
     media: {
       kind: "image",
       label: "mindmap.png",
@@ -279,8 +281,8 @@ export const projects: Project[] = [
     period: "Sep–Okt 2024",
     status: { kind: "place", place: 3 },
     summary:
-      "Aplikasi mobile deteksi kondisi kulit berbasis YOLOv8 dan conversational AI (RAG). Dikembangkan untuk kompetisi AI-NOVAC — meraih Juara 3.",
-    stack: ["Flutter", "YOLOv8", "RAG / AI"],
+      "Aplikasi mobile deteksi kondisi kulit. Foto dikirim ke server tim yang menjalankan YOLOv8, lalu RAG (LangChain, FAISS, Gemini) menulis penjelasannya. Bagian saya: aplikasi Flutter, login, riwayat, dan pemanggilan API. Kompetisi AI-NOVAC — meraih Juara 3.",
+    stack: ["Flutter", "Firebase", "YOLOv8", "RAG / AI"],
     media: {
       kind: "image",
       label: "ai-novac-2024.jpg",
@@ -299,7 +301,7 @@ export const projects: Project[] = [
     period: "Agu–Sep 2024",
     status: { kind: "place", place: 2 },
     summary:
-      "Web app kesehatan mental dengan arsitektur dual LSTM untuk analisis mood berbasis diary, serta deteksi risiko bunuh diri berbasis forum. Kompetisi ITConvert, Universitas Jember — meraih Juara 2 kategori Software Development.",
+      "Web app kesehatan mental dengan arsitektur dual LSTM untuk analisis mood berbasis diary, serta deteksi risiko bunuh diri berbasis forum. Bagian saya: frontend, backend, dan integrasi AI ke aplikasi; modelnya dibuat anggota tim. Kompetisi IT Convert, Universitas Jember — meraih Juara 2 kategori Software Development.",
     stack: ["Laravel", "PHP", "LSTM / AI"],
     media: {
       kind: "image",
@@ -441,10 +443,10 @@ export const repoFilters: { id: "all" | RepoCat; label: string }[] = [
 export const education = [
   {
     years: "2022—2026",
-    note: "expected",
+    note: "lulus Agt 2026",
     title: "Teknik Komputer",
-    org: "Universitas Pendidikan Indonesia — Kampus Cibiru · GPA 3.83/4.00",
-    desc: "Undergraduate, fokus embedded systems, computer vision, dan software engineering.",
+    org: "Universitas Pendidikan Indonesia — Kampus Cibiru · IPK 3,84/4,00",
+    desc: "Sarjana Teknik Komputer, lulus Agustus 2026. Fokus embedded systems, computer vision, dan software engineering.",
   },
   {
     years: "2019—2022",
@@ -456,11 +458,18 @@ export const education = [
 
 export const experience = [
   {
-    ts: ["2025", "Sem. 7"],
+    ts: ["2026", "Okt — Sekarang"],
+    tag: "FOUNDER",
+    title: "Founder & Software Developer",
+    org: "Gemoy Dev",
+    desc: "Software house kecil untuk klien perorangan. Mengembangkan Ideaksi, aplikasi web belajar menulis untuk siswa SMP dengan kuis, asisten AI berbasis Gemini, dan dashboard guru, memakai Next.js, TypeScript, dan Supabase.",
+  },
+  {
+    ts: ["2025", "Sep — Des"],
     tag: "INTERN",
     title: "Software Engineer",
-    org: "PT. Irostech",
-    desc: "Magang sebagai Software Engineer pada semester 7 — terlibat dalam pengembangan software sesuai kebutuhan perusahaan.",
+    org: "PT. Irostech Solusi Intelijen",
+    desc: "Magang MBKM sebagai Software Engineer. Mengembangkan aplikasi mobile Flutter untuk pemantauan keamanan makanan berbasis sensor gas: scan tray, analitik grafik, riwayat, dan profil, dengan Supabase, Google Sign-In, dan reset kata sandi lewat token email.",
     doc: {
       card: "/media/exp-irostech.jpg",
       dither: "/media/dither/exp-irostech.png",
@@ -476,11 +485,11 @@ export const experience = [
     },
   },
   {
-    ts: ["2025", "DBS CC"],
-    tag: "STUDI INDEPENDEN",
-    title: "DBS Coding Camp 2025",
-    org: "Kampus Merdeka — Program Studi Independen Bersertifikat",
-    desc: "Mengikuti program Studi Independen DBS Coding Camp 2025 — hasil akhirnya berupa proyek AcneSense.",
+    ts: ["2025", "Feb — Jul"],
+    tag: "BEASISWA",
+    title: "Coding Camp 2025 powered by DBS Foundation",
+    org: "Dicoding × DBS Foundation — jalur Front-End dan Back-End Developer",
+    desc: "Program beasiswa pelatihan IT yang sangat selektif. Lulus penuh (Full Graduate) dengan nilai proyek akhir 96,4. Hasil akhirnya berupa proyek AcneSense.",
     doc: {
       card: "/media/exp-dbs-coding-camp.jpg",
       dither: "/media/dither/exp-dbs-coding-camp.png",
@@ -534,8 +543,8 @@ export const achievements = [
     seal: "★",
     caseNo: "CASE 03",
     category: "Penghargaan Kampus",
-    title: "Academic & Non-Academic Excellence",
-    desc: "Penghargaan atas prestasi akademik dan non-akademik dari Universitas Pendidikan Indonesia.",
+    title: "Prestasi Akademik & Non-Akademik — Peringkat 2",
+    desc: "Penghargaan prestasi akademik dan non-akademik peringkat kedua, Program Studi Teknik Komputer, Universitas Pendidikan Indonesia.",
     year: "2025",
   },
 ];
@@ -545,8 +554,8 @@ export const resumeDoc = {
   file: "Fahmi_Nursafaat_CV.pdf",
   pdf: "/resume/Fahmi_Nursafaat_CV.pdf",
   pages: [
-    { src: "/resume/page-1.webp", w: 1241, h: 1755 },
-    { src: "/resume/page-2.webp", w: 1241, h: 1755 },
+    { src: "/resume/page-1.webp", w: 1241, h: 1754 },
+    { src: "/resume/page-2.webp", w: 1241, h: 1754 },
   ],
 };
 
